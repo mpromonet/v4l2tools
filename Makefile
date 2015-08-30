@@ -10,9 +10,6 @@ LDFLAGS += -lv4l2
 
 # v4l2wrapper
 CFLAGS += -I v4l2wrapper/inc
-LDFLAGS += 
-
-V4L2WRAPPER=v4l2wrapper/src/V4l2Device.cpp v4l2wrapper/src/V4l2Output.cpp v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
 
 .DEFAULT_GOAL := all
 
@@ -22,10 +19,10 @@ ifneq ($(wildcard $(ILCLIENTDIR)),)
 CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR)
 LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
 
-v4l2grab_h264: src/v4l2grab_h264.cpp $(V4L2WRAPPER) $(ILCLIENTDIR)/libilclient.a
+v4l2grab_h264: src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
-v4l2display_h264: src/v4l2display_h264.cpp $(V4L2WRAPPER) $(ILCLIENTDIR)/libilclient.a
+v4l2display_h264: src/v4l2display_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
 $(ILCLIENTDIR)/libilclient.a:
@@ -42,20 +39,21 @@ libyuv/source/*.cc:
 	git submodule update libyuv
 
 # read V4L2 capture -> write V4L2 output
-v4l2copy: src/v4l2copy.cpp $(V4L2WRAPPER)
+v4l2copy: src/v4l2copy.cpp  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/source/*.cc $(V4L2WRAPPER)
+v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/source/*.cc  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lvpx -I libyuv/include
 
 # read V4L2 capture -> compress using x264 -> write V4L2 output
-v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/source/*.cc $(V4L2WRAPPER) 
+v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/source/*.cc  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
 
-v4l2wrapper/src/V4l2Capture.cpp: 
+v4l2wrapper/libv4l2wrapper.a: 
 	git submodule init v4l2wrapper
 	git submodule update v4l2wrapper
+	make -C v4l2wrapper
 	
 upgrade:
 	git submodule foreach git pull origin master
