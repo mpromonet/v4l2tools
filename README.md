@@ -1,11 +1,8 @@
 
-v4l2wrapper
+v4l2tools
 ====================
 
-It is C++ wrapper for V4L2
-
-It is based on :
-- libv4l-dev 
+It is V4L2 tools based on v4l2wrapper
 
 License
 ------------

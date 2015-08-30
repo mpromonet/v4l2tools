@@ -1,6 +1,5 @@
 ALL_PROGS = v4l2copy v4l2compress_vp8 v4l2compress_h264
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA)
-CFLAGS += -I inc
 RM = rm -rf
 CC = g++
 
@@ -9,7 +8,11 @@ LDFLAGS += -llog4cpp
 # v4l2
 LDFLAGS += -lv4l2 
 
-V4L2WRAPPER=src/V4l2Device.cpp src/V4l2Output.cpp src/V4l2Capture.cpp src/V4l2MmapCapture.cpp src/V4l2ReadCapture.cpp
+# v4l2wrapper
+CFLAGS += -I v4l2wrapper/inc
+LDFLAGS += 
+
+V4L2WRAPPER=v4l2wrapper/src/V4l2Device.cpp v4l2wrapper/src/V4l2Output.cpp v4l2wrapper/src/V4l2Capture.cpp v4l2wrapper/src/V4l2MmapCapture.cpp v4l2wrapper/src/V4l2ReadCapture.cpp
 
 .DEFAULT_GOAL := all
 
@@ -19,7 +22,7 @@ ifneq ($(wildcard $(ILCLIENTDIR)),)
 CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR)
 LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
 
-v4l2grab_h264: src/v4l2grab_h264.cpp src/V4l2Output.cpp $(ILCLIENTDIR)/libilclient.a
+v4l2grab_h264: src/v4l2grab_h264.cpp $(V4L2WRAPPER) $(ILCLIENTDIR)/libilclient.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
 v4l2display_h264: src/v4l2display_h264.cpp $(V4L2WRAPPER) $(ILCLIENTDIR)/libilclient.a
@@ -50,5 +53,12 @@ v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/source/*.cc $(V4L2WRAPPER)
 v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/source/*.cc $(V4L2WRAPPER) 
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
 
+v4l2wrapper/src/V4l2Capture.cpp: 
+	git submodule init v4l2wrapper
+	git submodule update v4l2wrapper
+	
+upgrade:
+	git submodule foreach git pull origin master
+	
 clean:
 	-@$(RM) $(ALL_PROGS) .*o 
