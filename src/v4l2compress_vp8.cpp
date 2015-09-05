@@ -78,26 +78,32 @@ int main(int argc, char* argv[])
 		optind++;
 	}	
 
-	int                  flags=0;
-	int                  frame_cnt=0;
+
+	// initialize log4cpp
+	initLogger(verbose);
 
 	vpx_image_t          raw;
 	if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
+	{
 		LOG(WARN) << "vpx_img_alloc"; 
+	}
 
 	const vpx_codec_iface_t* algo = vpx_codec_vp8_cx();
 	vpx_codec_enc_cfg_t  cfg;
 	if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
+	{
 		LOG(WARN) << "vpx_codec_enc_config_default"; 
+	}
 
-    
+	cfg.g_w = width;
+	cfg.g_h = height;	
+	
 	vpx_codec_ctx_t      codec;
 	if(vpx_codec_enc_init(&codec, algo, &cfg, 0))    
+	{
 		LOG(WARN) << "vpx_codec_enc_init"; 
+	}
 		
-	// initialize log4cpp
-	initLogger(verbose);
-
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_YUYV;
 	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
@@ -118,6 +124,8 @@ int main(int argc, char* argv[])
 		LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 
 		videoCapture->captureStart();
 		int stop=0;
+		int flags=0;
+		int frame_cnt=0;
 		while (!stop) 
 		{
 			tv.tv_sec=1;
@@ -164,7 +172,6 @@ int main(int argc, char* argv[])
 				stop=1;
 			}
 		}
-		videoCapture->captureStop();
 		delete videoCapture;
 	}
 	
