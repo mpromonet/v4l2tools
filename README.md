@@ -14,6 +14,17 @@ Dependencies
  - liblog4cpp5-dev
  - libvpx-dev      (for v4l2compress_vp8)
  - libx264-dev     (for v4l2compress_h264)
+
+Build
+-----
+
+     make
+
+Install
+-------
+
+     make install
+
  
 Samples
 -------

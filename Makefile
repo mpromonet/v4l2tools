@@ -58,5 +58,8 @@ v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/libyuv.a  v4l2wrapper/libv4l
 upgrade:
 	git submodule foreach git pull origin master
 	
+install:
+	install -m 0755 $(ALL_PROGS) /usr/local/bin
+
 clean:
 	-@$(RM) $(ALL_PROGS) .*o */*.a
