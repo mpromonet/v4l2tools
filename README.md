@@ -26,7 +26,7 @@ Install
      make install
 
  
-Samples
+Tools
 -------
  - v4l2copy          : 
 
@@ -39,6 +39,9 @@ Samples
  - v4l2compress_h264 : 
 
 >	read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
+
+Tools for Raspberry
+-------------------
 
  - v4l2grab_h264     : 
 
