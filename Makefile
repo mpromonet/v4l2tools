@@ -7,7 +7,6 @@ CC = g++
 LDFLAGS += -llog4cpp 
 # v4l2
 LDFLAGS += -lv4l2 
-
 # v4l2wrapper
 CFLAGS += -I v4l2wrapper/inc
 
@@ -34,29 +33,30 @@ endif
 
 all: $(ALL_PROGS)
 
-libyuv/source/*.cc:
+libyuv/libyuv.a:
 	git submodule init libyuv
 	git submodule update libyuv
+	make -C libyuv -f linux.mk
+
+v4l2wrapper/libv4l2wrapper.a: 
+	git submodule init v4l2wrapper
+	git submodule update v4l2wrapper
+	make -C v4l2wrapper
 
 # read V4L2 capture -> write V4L2 output
 v4l2copy: src/v4l2copy.cpp  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/source/*.cc  v4l2wrapper/libv4l2wrapper.a
+v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/libyuv.a  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lvpx -I libyuv/include
 
 # read V4L2 capture -> compress using x264 -> write V4L2 output
-v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/source/*.cc  v4l2wrapper/libv4l2wrapper.a
+v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/libyuv.a  v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
-
-v4l2wrapper/libv4l2wrapper.a: 
-	git submodule init v4l2wrapper
-	git submodule update v4l2wrapper
-	make -C v4l2wrapper
 	
 upgrade:
 	git submodule foreach git pull origin master
 	
 clean:
-	-@$(RM) $(ALL_PROGS) .*o 
+	-@$(RM) $(ALL_PROGS) .*o */*.a
