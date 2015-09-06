@@ -42,8 +42,10 @@ int main(int argc, char* argv[])
 	int fps = 25;	
 	int c = 0;
 	bool useMmap = true;
+	int bitrate = 1000;
+	vpx_rc_mode ratecontrolmode = VPX_VBR;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::r")) != -1)
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::r" "cb:")) != -1)
 	{
 		switch (c)
 		{
@@ -51,18 +53,24 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
+			case 'b':	bitrate = atoi(optarg); break;
+			case 'c':	ratecontrolmode = VPX_CBR; break;
 			case 'r':	useMmap = false; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
-				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
-				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
-				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
+
+				std::cout << "\t -b bitrate           : target bitrate " << std::endl;
+				std::cout << "\t -c                   : rate control mode CBR (default is VBR) " << std::endl;
+
+				std::cout << "\t -W width             : V4L2 capture width (default "<< width << ")" << std::endl;
+				std::cout << "\t -H height            : V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t -F fps               : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				std::cout << "\t -r                   : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
+				std::cout << "\t source_device        : V4L2 capture device (default "<< in_devname << ")" << std::endl;
+				std::cout << "\t dest_device          : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
 		}
@@ -97,6 +105,8 @@ int main(int argc, char* argv[])
 
 	cfg.g_w = width;
 	cfg.g_h = height;	
+	cfg.rc_end_usage = ratecontrolmode;
+	cfg.rc_target_bitrate = bitrate;
 	
 	vpx_codec_ctx_t      codec;
 	if(vpx_codec_enc_init(&codec, algo, &cfg, 0))    
