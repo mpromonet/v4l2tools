@@ -190,11 +190,43 @@ void encode_deactivate(COMPONENT_T* video_render, COMPONENT_T*video_decode, TUNN
 
 int main (int argc, char **argv)
 {
-	if (argc < 2) 
+	
+	const char *in_devname = "/dev/video0";	
+	int  width = 640;
+	int  height = 480;	
+	int  fps = 10;	
+	int  c = 0;
+	bool useMmap = true;
+	int  verbose = 0;
+	
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::r")) != -1)
 	{
-		printf("Usage: %s <filename>\n", argv[0]);
-		exit(1);
+		switch (c)
+		{
+			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
+			case 'W':	width = atoi(optarg); break;
+			case 'H':	height = atoi(optarg); break;
+			case 'F':	fps = atoi(optarg); break;
+			case 'r':	useMmap = false; break;			
+			case 'h':
+			{
+				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
+				std::cout << "\t -v            : verbose " << std::endl;
+				std::cout << "\t -vv           : very verbose " << std::endl;
+				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
+				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
+				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
+				exit(0);
+			}
+		}
 	}
+	if (optind<argc)
+	{
+		in_devname = argv[optind];
+		optind++;
+	}	
 	bcm_host_init();
 
 	COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *video_render = NULL, *clock = NULL;
@@ -213,8 +245,8 @@ int main (int argc, char **argv)
 		int port_settings_changed = 0;
 		int first_packet = 1;
 		
-		V4L2DeviceParameters param(argv[1],V4L2_PIX_FMT_H264,640,480,0,true);
-		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, true);
+		V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_H264,width,height,fps,verbose);
+		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
 		fd_set fdset;
 		FD_ZERO(&fdset);
 		videoCapture->captureStart();
