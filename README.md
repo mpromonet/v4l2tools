@@ -50,3 +50,7 @@ Tools for Raspberry
  - v4l2diplay_h264     : 
 
 >	read H264 from V4L2 capture device, uncompress and display using OMX
+
+ - v4l2compress_omx : 
+
+>	read YUV420 from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device

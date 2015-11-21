@@ -1,5 +1,5 @@
 ALL_PROGS = v4l2copy v4l2compress_vp8 v4l2compress_h264
-CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA)
+CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = g++
 
@@ -18,17 +18,22 @@ ifneq ($(wildcard $(ILCLIENTDIR)),)
 CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR)
 LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
 
-v4l2grab_h264: src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
+v4l2compress_omx: src/encode_omx.cpp src/v4l2compress_omx.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a 
+	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
+
+v4l2grab_h264: src/encode_omx.cpp src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
 v4l2display_h264: src/v4l2display_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
+
 
 $(ILCLIENTDIR)/libilclient.a:
 	make -C $(ILCLIENTDIR)
 	
 ALL_PROGS+=v4l2grab_h264
 ALL_PROGS+=v4l2display_h264
+ALL_PROGS+=v4l2compress_omx
 endif
 
 all: $(ALL_PROGS)
