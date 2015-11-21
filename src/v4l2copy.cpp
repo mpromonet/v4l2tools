@@ -78,43 +78,49 @@ int main(int argc, char* argv[])
 	else
 	{
 		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output out(outparam);
-		
-		fd_set fdset;
-		FD_ZERO(&fdset);
-		timeval tv;
-		LOG(NOTICE) << "Start Copying " << in_devname << " to " << out_devname; 
-		videoCapture->captureStart();
-		
-		int stop=0;
-		while (!stop) 
-		{
-			tv.tv_sec=1;
-			tv.tv_usec=0;
-			FD_SET(videoCapture->getFd(), &fdset);
-			int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
-			if (ret == 1)
+		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmap);
+		if (videoOutput == NULL)
+		{	
+			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
+		}
+		else
+		{		
+			fd_set fdset;
+			FD_ZERO(&fdset);
+			timeval tv;
+			LOG(NOTICE) << "Start Copying " << in_devname << " to " << out_devname; 
+			videoCapture->captureStart();
+			
+			int stop=0;
+			while (!stop) 
 			{
-				char buffer[videoCapture->getBufferSize()];
-				int rsize = videoCapture->read(buffer, sizeof(buffer));
-				if (rsize == -1)
+				tv.tv_sec=1;
+				tv.tv_usec=0;
+				FD_SET(videoCapture->getFd(), &fdset);
+				int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+				if (ret == 1)
+				{
+					char buffer[videoCapture->getBufferSize()];
+					int rsize = videoCapture->read(buffer, sizeof(buffer));
+					if (rsize == -1)
+					{
+						LOG(NOTICE) << "stop " << strerror(errno); 
+						stop=1;					
+					}
+					else
+					{
+						int wsize = videoOutput->write(buffer, rsize);
+						LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
+					}
+				}
+				else if (ret == -1)
 				{
 					LOG(NOTICE) << "stop " << strerror(errno); 
-					stop=1;					
-				}
-				else
-				{
-					int wsize = write(out.getFd(), buffer, rsize);
-					LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
+					stop=1;
 				}
 			}
-			else if (ret == -1)
-			{
-				LOG(NOTICE) << "stop " << strerror(errno); 
-				stop=1;
-			}
+			delete videoOutput;
 		}
-		videoCapture->captureStop();
 		delete videoCapture;
 	}
 	
