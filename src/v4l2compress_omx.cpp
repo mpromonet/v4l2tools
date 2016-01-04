@@ -57,9 +57,10 @@ int main(int argc, char* argv[])
 	int height = 480;	
 	int fps = 10;	
 	int c = 0;
-	bool useMmap = true;
+	bool useMmapIn = true;
+	bool useMmapOut = true;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::r")) != -1)
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
@@ -67,7 +68,8 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	useMmap = false; break;			
+			case 'r':	useMmapIn = false; break;			
+			case 'w':	useMmapOut = false; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -77,6 +79,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
 				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
+				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
@@ -98,9 +101,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	int format = V4L2_PIX_FMT_YUV420;
-	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+	V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_YUV420,width,height,fps,verbose);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmapIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -108,85 +110,99 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-
-		bcm_host_init();
-		
-		OMX_BUFFERHEADERTYPE *      buf = NULL;
-		OMX_BUFFERHEADERTYPE *      out = NULL;
-		COMPONENT_T *               video_encode = NULL;
-
-		ILCLIENT_T *client = encode_init(&video_encode);
-		if (client)
-		{
-			encode_config_input(video_encode, videoCapture->getWidth(), videoCapture->getHeight(), 30, OMX_COLOR_FormatYUV420PackedPlanar);
-			encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
-
-			encode_config_activate(video_encode);		
-			
-			V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-			V4l2Output outDev(outparam);
-			fd_set fdset;
-			FD_ZERO(&fdset);
-			timeval tv;
-			LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 
-			videoCapture->captureStart();
-			
-			signal(SIGINT,sighandler);
-			while (!stop) 
+		// init V4L2 output interface
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
+		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmapOut);
+		if (videoOutput == NULL)
+		{	
+			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
+		}
+		else
+		{		
+			LOG(NOTICE) << "Start Capturing from " << in_devname; 
+			if (videoCapture->captureStart() == false)
 			{
-				FD_SET(videoCapture->getFd(), &fdset);
-				tv.tv_sec=1;
-				tv.tv_usec=0;
-				int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
-				if (ret == 1)
-				{			
-					buf = ilclient_get_input_buffer(video_encode, 200, 0);
-					if (buf != NULL)
-					{
-						/* fill it */
-						int rsize = videoCapture->read((char*)buf->pBuffer, buf->nAllocLen);
-						LOG(DEBUG) << "read size:" << rsize << " buffer size:" << buf->nAllocLen; 
-						buf->nFilledLen = rsize;
+				LOG(WARN) << "Cannot start capture from device:" << in_devname; 
+			}
+			else
+			{					
+				bcm_host_init();
+				
+				OMX_BUFFERHEADERTYPE *      buf = NULL;
+				OMX_BUFFERHEADERTYPE *      out = NULL;
+				COMPONENT_T *               video_encode = NULL;
 
-						if (OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_encode), buf) != OMX_ErrorNone)
+				ILCLIENT_T *client = encode_init(&video_encode);
+				if (client)
+				{
+					encode_config_input(video_encode, videoCapture->getWidth(), videoCapture->getHeight(), 30, OMX_COLOR_FormatYUV420PackedPlanar);
+					encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
+
+					encode_config_activate(video_encode);		
+					fd_set fdset;
+					FD_ZERO(&fdset);
+					timeval tv;
+					
+					LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 					
+					signal(SIGINT,sighandler);
+					while (!stop) 
+					{
+						FD_SET(videoCapture->getFd(), &fdset);
+						tv.tv_sec=1;
+						tv.tv_usec=0;
+						int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+						if (ret == 1)
+						{			
+							buf = ilclient_get_input_buffer(video_encode, 200, 0);
+							if (buf != NULL)
+							{
+								/* fill it */
+								int rsize = videoCapture->read((char*)buf->pBuffer, buf->nAllocLen);
+								LOG(DEBUG) << "read size:" << rsize << " buffer size:" << buf->nAllocLen; 
+								buf->nFilledLen = rsize;
+
+								if (OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_encode), buf) != OMX_ErrorNone)
+								{
+									fprintf(stderr, "Error emptying buffer!\n");
+								}
+							}
+								
+							out = ilclient_get_output_buffer(video_encode, 201, 0);
+							if (out != NULL)
+							{
+								OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
+								if (r != OMX_ErrorNone)
+								{
+									LOG(WARN) << "Error filling buffer:" << r; 
+								}
+								if (out->nFilledLen > 0)
+								{
+									size_t sz = videoOutput->write((char*)out->pBuffer, out->nFilledLen);
+									if (sz != out->nFilledLen)
+									{
+										LOG(WARN) << "fwrite: Error emptying buffer:" << sz; 
+									}
+									else
+									{
+										LOG(DEBUG) << "Writing frame size:" << sz; 
+									}
+								}
+								
+								out->nFilledLen = 0;
+							}					
+						}
+						else if (ret == -1)
 						{
-							fprintf(stderr, "Error emptying buffer!\n");
+							LOG(NOTICE) << "stop error:" << strerror(errno); 
+							stop=1;
 						}
 					}
-						
-					out = ilclient_get_output_buffer(video_encode, 201, 0);
-					if (out != NULL)
-					{
-						OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
-						if (r != OMX_ErrorNone)
-						{
-							LOG(WARN) << "Error filling buffer:" << r; 
-						}
-						if (out->nFilledLen > 0)
-						{
-							size_t sz = write(outDev.getFd(), out->pBuffer, out->nFilledLen);
-							if (sz != out->nFilledLen)
-							{
-								LOG(WARN) << "fwrite: Error emptying buffer:" << sz; 
-							}
-							else
-							{
-								LOG(DEBUG) << "Writing frame size:" << sz; 
-							}
-						}
-						
-						out->nFilledLen = 0;
-					}					
-				}
-				else if (ret == -1)
-				{
-					LOG(NOTICE) << "stop error:" << strerror(errno); 
-					stop=1;
+					
+					encode_deactivate(video_encode);
+					encode_deinit(video_encode, client);			
 				}
 			}
-			
-			encode_deactivate(video_encode);
-			encode_deinit(video_encode, client);			
+			delete videoOutput;
 		}
 		
 		delete videoCapture;
