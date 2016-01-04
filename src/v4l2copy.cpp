@@ -33,20 +33,23 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	bool useMmap = true;
+	bool useMmapIn = true;
+	bool useMmapOut = true;
 	
-	while ((c = getopt (argc, argv, "hP:F:v::r")) != -1)
+	while ((c = getopt (argc, argv, "hP:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':	useMmap = false; break;			
+			case 'r':	useMmapIn = false; break;			
+			case 'w':	useMmapOut = false; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
+				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
@@ -69,7 +72,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmapIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -78,7 +81,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmap);
+		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmapOut);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
