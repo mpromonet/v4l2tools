@@ -64,6 +64,7 @@ int main(int argc, char* argv[])
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
 			case 'r':	useMmapIn = false; break;			
+			case 'w':	useMmapOut = false; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
