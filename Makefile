@@ -16,13 +16,13 @@ ifneq ($(wildcard $(ILCLIENTDIR)),)
 CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR)
 LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
 
-v4l2compress_omx: src/encode_omx.cpp src/v4l2compress_omx.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a 
+v4l2compress_omx: src/encode_omx.cpp src/v4l2compress_omx.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a 
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
-v4l2grab_h264: src/encode_omx.cpp src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
+v4l2grab_h264: src/encode_omx.cpp src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
-v4l2display_h264: src/v4l2display_h264.cpp $(ILCLIENTDIR)/libilclient.a v4l2wrapper/libv4l2wrapper.a
+v4l2display_h264: src/v4l2display_h264.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a
 	$(CC) -o $@ $^ -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi $(CFLAGS) $(LDFLAGS) 
 
 
@@ -41,25 +41,27 @@ libyuv/libyuv.a:
 	git submodule update libyuv
 	make -C libyuv -f linux.mk
 
-v4l2wrapper/libv4l2wrapper.a: 
+libv4l2wrapper.a: 
 	git submodule init v4l2wrapper
 	git submodule update v4l2wrapper
 	make -C v4l2wrapper
+	mv v4l2wrapper/libv4l2wrapper.a .
+	make -C v4l2wrapper clean
 
 # read V4L2 capture -> write V4L2 output
-v4l2copy: src/v4l2copy.cpp  v4l2wrapper/libv4l2wrapper.a
+v4l2copy: src/v4l2copy.cpp  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # read V4L2 capture -> convert YUV format -> write V4L2 output
-v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv/libyuv.a v4l2wrapper/libv4l2wrapper.a
+v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv/libyuv.a libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/libyuv.a  v4l2wrapper/libv4l2wrapper.a
+v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lvpx -I libyuv/include
 
 # read V4L2 capture -> compress using x264 -> write V4L2 output
-v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/libyuv.a  v4l2wrapper/libv4l2wrapper.a
+v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
 	
 upgrade:

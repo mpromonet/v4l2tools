@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 	bool useMmapOut = true;
 	std::string outFormatStr = "YU12";
 	
-	while ((c = getopt (argc, argv, "hv::" "o" "rw")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "o:" "rw")) != -1)
 	{
 		switch (c)
 		{
@@ -110,7 +110,8 @@ int main(int argc, char* argv[])
 		int height   =  videoCapture->getHeight();
 				
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
+		int outformat =  v4l2_fourcc(outFormatStr[0],outFormatStr[1],outFormatStr[2],outFormatStr[3]);
+		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
 		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmapOut);
 		if (videoOutput == NULL)
 		{	
@@ -125,8 +126,6 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				int outformat =  v4l2_fourcc(outFormatStr[0],outFormatStr[1],outFormatStr[2],outFormatStr[3]);
-				
 				// intermediate I420 image
 				uint8 i420_p0[width*height];
 				uint8 i420_p1[width*height/2];
