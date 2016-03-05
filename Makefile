@@ -5,8 +5,6 @@ CC = g++
 
 # log4cpp
 LDFLAGS += -llog4cpp 
-# v4l2
-LDFLAGS += -lv4l2 
 # v4l2wrapper
 CFLAGS += -I v4l2wrapper/inc
 

@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	
 	
 	V4L2DeviceParameters outparam(argv[1], V4L2_PIX_FMT_H264,  info.width, info.height, 0, true);
-	V4l2Output outDev(outparam);	
+	V4l2Output* outDev = V4l2Output::createNew(outparam);	
 
 	ILCLIENT_T *client = encode_init(&video_encode);
 	if (client)
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 				}
 				if (out->nFilledLen > 0)
 				{
-					size_t sz = write(outDev.getFd(), out->pBuffer, out->nFilledLen);
+					size_t sz = outDev->write((char*)out->pBuffer, out->nFilledLen);
 					if (sz != out->nFilledLen)
 					{
 						fprintf(stderr, "fwrite: Error emptying buffer: %d!\n", sz);
@@ -148,6 +148,7 @@ int main(int argc, char **argv)
 		encode_deactivate(video_encode);
 		encode_deinit(video_encode, client);		
 	}	
+	delete outDev;
 	
 	return status;
 }
