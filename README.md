@@ -2,7 +2,7 @@
 v4l2tools
 ====================
 
-It is V4L2 tools based on v4l2wrapper
+This is V4L2 tools based on libv4l2cpp
 
 License
 ------------
@@ -10,27 +10,21 @@ Domain public
 
 Dependencies
 ------------
- - libv4l-dev
  - liblog4cpp5-dev
  - libvpx-dev      (for v4l2compress_vp8)
  - libx264-dev     (for v4l2compress_h264)
 
-Build
------
-
-     make
-
-Install
--------
-
-     make install
-
  
 Tools
 -------
+
  - v4l2copy          : 
 
 >	read from a V4L2 capture device and write to a V4L2 output device
+
+ - v4l2convert_YUV          : 
+
+>	read an YUV format from a V4L2 capture device, convert to an other YUV format and write to a V4L2 output device
 
  - v4l2compress_vp8  : 
 
@@ -54,3 +48,14 @@ Tools for Raspberry
  - v4l2compress_omx : 
 
 >	read YUV420 from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device
+
+Build
+-----
+
+     make
+
+Install
+-------
+
+     make install
+

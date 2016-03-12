@@ -36,10 +36,12 @@ endif
 
 all: $(ALL_PROGS)
 
-libyuv/libyuv.a:
+libyuv.a:
 	git submodule init libyuv
 	git submodule update libyuv
 	make -C libyuv -f linux.mk
+	mv libyuv/libyuv.a .
+	make -C libyuv -f linux.mk clean
 
 libv4l2wrapper.a: 
 	git submodule init v4l2wrapper
@@ -53,15 +55,15 @@ v4l2copy: src/v4l2copy.cpp  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # read V4L2 capture -> convert YUV format -> write V4L2 output
-v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv/libyuv.a libv4l2wrapper.a
+v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv.a libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv/libyuv.a  libv4l2wrapper.a
+v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lvpx -I libyuv/include
 
 # read V4L2 capture -> compress using x264 -> write V4L2 output
-v4l2compress_h264: src/v4l2compress_h264.cpp libyuv/libyuv.a  libv4l2wrapper.a
+v4l2compress_h264: src/v4l2compress_h264.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
 	
 upgrade:
@@ -71,4 +73,4 @@ install:
 	install -m 0755 $(ALL_PROGS) /usr/local/bin
 
 clean:
-	-@$(RM) $(ALL_PROGS) .*o */*.a
+	-@$(RM) $(ALL_PROGS) .*o *.a

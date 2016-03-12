@@ -45,16 +45,16 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	bool useMmapIn = true;
-	bool useMmapOut = true;
+	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
 	
 	while ((c = getopt (argc, argv, "hP:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
-			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':	useMmapIn = false; break;			
-			case 'w':	useMmapOut = false; break;			
+			case 'v':	verbose   = 1; if (optarg && *optarg=='v') verbose++;  break;
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
+			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READ; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmapIn);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -94,51 +94,44 @@ int main(int argc, char* argv[])
 	{
 		// init V4L2 output interface
 		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmapOut);
+		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
 		}
 		else
 		{		
-			if (videoCapture->captureStart() == false)
+			fd_set fdset;
+			FD_ZERO(&fdset);
+			timeval tv;
+			
+			LOG(NOTICE) << "Start Copying from " << in_devname << " to " << out_devname; 
+			signal(SIGINT,sighandler);				
+			while (!stop) 
 			{
-				LOG(WARN) << "Cannot start capture from device:" << in_devname; 
-			}
-			else
-			{			
-				fd_set fdset;
-				FD_ZERO(&fdset);
-				timeval tv;
-				
-				LOG(NOTICE) << "Start Copying from " << in_devname << " to " << out_devname; 
-				signal(SIGINT,sighandler);				
-				while (!stop) 
+				tv.tv_sec=1;
+				tv.tv_usec=0;
+				FD_SET(videoCapture->getFd(), &fdset);
+				int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+				if (ret == 1)
 				{
-					tv.tv_sec=1;
-					tv.tv_usec=0;
-					FD_SET(videoCapture->getFd(), &fdset);
-					int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
-					if (ret == 1)
-					{
-						char buffer[videoCapture->getBufferSize()];
-						int rsize = videoCapture->read(buffer, sizeof(buffer));
-						if (rsize == -1)
-						{
-							LOG(NOTICE) << "stop " << strerror(errno); 
-							stop=1;					
-						}
-						else
-						{
-							int wsize = videoOutput->write(buffer, rsize);
-							LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
-						}
-					}
-					else if (ret == -1)
+					char buffer[videoCapture->getBufferSize()];
+					int rsize = videoCapture->read(buffer, sizeof(buffer));
+					if (rsize == -1)
 					{
 						LOG(NOTICE) << "stop " << strerror(errno); 
-						stop=1;
+						stop=1;					
 					}
+					else
+					{
+						int wsize = videoOutput->write(buffer, rsize);
+						LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
+					}
+				}
+				else if (ret == -1)
+				{
+					LOG(NOTICE) << "stop " << strerror(errno); 
+					stop=1;
 				}
 			}
 			delete videoOutput;

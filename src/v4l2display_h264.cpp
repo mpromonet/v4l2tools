@@ -196,7 +196,7 @@ int main (int argc, char **argv)
 	int  height = 480;	
 	int  fps = 10;	
 	int  c = 0;
-	bool useMmap = true;
+	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
 	int  verbose = 0;
 	
 	while ((c = getopt (argc, argv, "hW:H:P:F:v::r")) != -1)
@@ -207,7 +207,7 @@ int main (int argc, char **argv)
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	useMmap = false; break;			
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -246,7 +246,7 @@ int main (int argc, char **argv)
 		int first_packet = 1;
 		
 		V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_H264,width,height,fps,verbose);
-		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmap);
+		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
 		fd_set fdset;
 		FD_ZERO(&fdset);
 		videoCapture->captureStart();

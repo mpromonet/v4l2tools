@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	bool useMmapIn = true;
-	bool useMmapOut = true;
+	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
 	std::string outFormatStr = "YU12";
 	
 	while ((c = getopt (argc, argv, "hv::" "o:" "rw")) != -1)
@@ -68,8 +68,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
-			case 'r':	useMmapIn = false; break;					
-			case 'w':	useMmapOut = false; break;
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
+			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READ; break;	
 			case 'o':       outFormatStr = optarg ; break;
 			default:
 				std::cout << "option :" << c << " is unknown" << std::endl;
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, useMmapIn);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 		// init V4L2 output interface
 		int outformat =  v4l2_fourcc(outFormatStr[0],outFormatStr[1],outFormatStr[2],outFormatStr[3]);
 		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, useMmapOut);
+		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
@@ -131,62 +131,55 @@ int main(int argc, char* argv[])
 				uint8 i420_p1[width*height/2];
 				uint8 i420_p2[width*height/2];
 				
-				if (videoCapture->captureStart() == false)
+				fd_set fdset;
+				FD_ZERO(&fdset);
+				timeval tv;
+				
+				LOG(NOTICE) << "Start Copying from " << in_devname << " to " << out_devname; 
+				signal(SIGINT,sighandler);				
+				while (!stop) 
 				{
-					LOG(WARN) << "Cannot start capture from device:" << in_devname; 
-				}
-				else
-				{			
-					fd_set fdset;
-					FD_ZERO(&fdset);
-					timeval tv;
-					
-					LOG(NOTICE) << "Start Copying from " << in_devname << " to " << out_devname; 
-					signal(SIGINT,sighandler);				
-					while (!stop) 
+					tv.tv_sec=1;
+					tv.tv_usec=0;
+					FD_SET(videoCapture->getFd(), &fdset);
+					int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+					if (ret == 1)
 					{
-						tv.tv_sec=1;
-						tv.tv_usec=0;
-						FD_SET(videoCapture->getFd(), &fdset);
-						int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
-						if (ret == 1)
-						{
-							char inbuffer[videoCapture->getBufferSize()];
-							int rsize = videoCapture->read(inbuffer, sizeof(inbuffer));
-							if (rsize == -1)
-							{
-								LOG(NOTICE) << "stop " << strerror(errno); 
-								stop=1;					
-							}
-							else
-							{
-								libyuv::ConvertToI420((const uint8*)inbuffer, rsize,
-									i420_p0, width,
-									i420_p1, width/2,
-									i420_p2, width/2,
-									0, 0,
-									width, height,
-									width, height,
-									libyuv::kRotate0, informat);
-
-								char outBuffer[videoOutput->getBufferSize()];
-								libyuv::ConvertFromI420(i420_p0, width,
-										i420_p1, width/2,
-										i420_p2, width/2,
-										(uint8*)outBuffer, sizeof(outBuffer),
-										width, height,
-										outformat);
-								
-								
-								int wsize = videoOutput->write(outBuffer, sizeof(outBuffer));
-								LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
-							}
-						}
-						else if (ret == -1)
+						char inbuffer[videoCapture->getBufferSize()];
+						int rsize = videoCapture->read(inbuffer, sizeof(inbuffer));
+						if (rsize == -1)
 						{
 							LOG(NOTICE) << "stop " << strerror(errno); 
-							stop=1;
+							stop=1;					
 						}
+						else
+						{
+							libyuv::ConvertToI420((const uint8*)inbuffer, rsize,
+								i420_p0, width,
+								i420_p1, width/2,
+								i420_p2, width/2,
+								0, 0,
+								width, height,
+								width, height,
+								libyuv::kRotate0, informat);
+
+							char outBuffer[videoOutput->getBufferSize()];
+							libyuv::ConvertFromI420(i420_p0, width,
+									i420_p1, width/2,
+									i420_p2, width/2,
+									(uint8*)outBuffer, sizeof(outBuffer),
+									width, height,
+									outformat);
+							
+							
+							int wsize = videoOutput->write(outBuffer, sizeof(outBuffer));
+							LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
+						}
+					}
+					else if (ret == -1)
+					{
+						LOG(NOTICE) << "stop " << strerror(errno); 
+						stop=1;
 					}
 				}
 			}
