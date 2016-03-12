@@ -249,7 +249,6 @@ int main (int argc, char **argv)
 		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
 		fd_set fdset;
 		FD_ZERO(&fdset);
-		videoCapture->captureStart();
 		timeval tv;	
 		
 		while((buf = ilclient_get_input_buffer(video_decode, 130, 1)) != NULL)
