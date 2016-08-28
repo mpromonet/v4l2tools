@@ -27,6 +27,7 @@ extern "C"
 }
 
 #include "V4l2Output.h"
+#include "logger.h"
 
 #include "encode_omx.h"
 
@@ -89,66 +90,77 @@ int main(int argc, char **argv)
 	ret = vc_dispmanx_rect_set(&rect, 0, 0, info.width, info.height);
 	assert(ret == 0);
 	
+	int verbose=0;
+
+	// initialize log4cpp
+	initLogger(verbose);
 	
+	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
 	V4L2DeviceParameters outparam(argv[1], V4L2_PIX_FMT_H264,  info.width, info.height, 0, true);
-	V4l2Output* outDev = V4l2Output::createNew(outparam);	
-
-	ILCLIENT_T *client = encode_init(&video_encode);
-	if (client)
-	{
-		encode_config_input(video_encode, info.width, info.height, 30, OMX_COLOR_Format24bitBGR888);
-		encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
-
-		encode_config_activate(video_encode);
-
-		fprintf(stderr, "looping for buffers...\n");
-		do
+	V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, ioTypeOut);
+	if (videoOutput == NULL)
+	{	
+		LOG(WARN) << "Cannot create V4L2 output interface for device:" << argv[1]; 
+	}
+	else
+	{ 
+		ILCLIENT_T *client = encode_init(&video_encode);
+		if (client)
 		{
-			buf = ilclient_get_input_buffer(video_encode, 200, 0);
-			if (buf != NULL)
-			{
-				/* fill it */
-				buf->nFilledLen = take_snapshot(buf->pBuffer, display, resource, info, &rect);
-				framenumber++;
+			encode_config_input(video_encode, info.width, info.height, 30, OMX_COLOR_Format24bitBGR888);
+			encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
 
-				if (OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_encode), buf) != OMX_ErrorNone)
-				{
-					fprintf(stderr, "Error emptying buffer!\n");
-				}
-			}
-				
-			out = ilclient_get_output_buffer(video_encode, 201, 0);
-			if (out != NULL)
+			encode_config_activate(video_encode);
+
+			fprintf(stderr, "looping for buffers...\n");
+			do
 			{
-				OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
-				if (r != OMX_ErrorNone)
+				buf = ilclient_get_input_buffer(video_encode, 200, 0);
+				if (buf != NULL)
 				{
-					fprintf(stderr, "Error filling buffer: %x\n", r);
-				}
-				if (out->nFilledLen > 0)
-				{
-					size_t sz = outDev->write((char*)out->pBuffer, out->nFilledLen);
-					if (sz != out->nFilledLen)
+					/* fill it */
+					buf->nFilledLen = take_snapshot(buf->pBuffer, display, resource, info, &rect);
+					framenumber++;
+
+					if (OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_encode), buf) != OMX_ErrorNone)
 					{
-						fprintf(stderr, "fwrite: Error emptying buffer: %d!\n", sz);
-					}
-					else
-					{
-//						fprintf(stderr, "Writing frame size:%d %d/%d\n", sz ,framenumber, NUMFRAMES);
+						fprintf(stderr, "Error emptying buffer!\n");
 					}
 				}
-				
-				out->nFilledLen = 0;
-			}
+					
+				out = ilclient_get_output_buffer(video_encode, 201, 0);
+				if (out != NULL)
+				{
+					OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
+					if (r != OMX_ErrorNone)
+					{
+						fprintf(stderr, "Error filling buffer: %x\n", r);
+					}
+					if (out->nFilledLen > 0)
+					{
+						size_t sz = videoOutput->write((char*)out->pBuffer, out->nFilledLen);
+						if (sz != out->nFilledLen)
+						{
+							fprintf(stderr, "fwrite: Error emptying buffer: %d!\n", sz);
+						}
+						else
+						{
+	//						fprintf(stderr, "Writing frame size:%d %d/%d\n", sz ,framenumber, NUMFRAMES);
+						}
+					}
+					
+					out->nFilledLen = 0;
+				}
 
-		} while (framenumber < NUMFRAMES);
+			} while (framenumber < NUMFRAMES);
+			
+			fprintf(stderr, "Exit\n");
 		
-		fprintf(stderr, "Exit\n");
-		
-		encode_deactivate(video_encode);
-		encode_deinit(video_encode, client);		
-	}	
-	delete outDev;
+			encode_deactivate(video_encode);
+			encode_deinit(video_encode, client);		
+		}	
+		delete videoOutput;
+	}
 	
 	return status;
 }
