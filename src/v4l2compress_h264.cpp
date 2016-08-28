@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_YUYV;
 	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -158,8 +158,6 @@ int main(int argc, char* argv[])
 				
 				x264_picture_t pic_out;
 				
-				fd_set fdset;
-				FD_ZERO(&fdset);
 				timeval tv;
 				timeval refTime;
 				timeval curTime;
@@ -168,10 +166,9 @@ int main(int argc, char* argv[])
 				signal(SIGINT,sighandler);
 				while (!stop) 
 				{
-					FD_SET(videoCapture->getFd(), &fdset);
 					tv.tv_sec=1;
 					tv.tv_usec=0;
-					int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+					int ret = videoCapture->isReadable(&tv);
 					if (ret == 1)
 					{
 						gettimeofday(&refTime, NULL);	

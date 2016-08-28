@@ -246,17 +246,14 @@ int main (int argc, char **argv)
 		int first_packet = 1;
 		
 		V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_H264,width,height,fps,verbose);
-		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
-		fd_set fdset;
-		FD_ZERO(&fdset);
+		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 		timeval tv;	
 		
 		while((buf = ilclient_get_input_buffer(video_decode, 130, 1)) != NULL)
 		{
 			tv.tv_sec=1;
 			tv.tv_usec=0;
-			FD_SET(videoCapture->getFd(), &fdset);
-			int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+			int ret = videoCapture->isReadable(&tv);
 			if (ret == 1)
 			{
 				buf->nFilledLen = videoCapture->read( (char*)buf->pBuffer, buf->nAllocLen);		

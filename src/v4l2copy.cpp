@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
 	// init V4L2 capture interface
 	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapure(param, ioTypeIn);
+	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -101,8 +101,6 @@ int main(int argc, char* argv[])
 		}
 		else
 		{		
-			fd_set fdset;
-			FD_ZERO(&fdset);
 			timeval tv;
 			
 			LOG(NOTICE) << "Start Copying from " << in_devname << " to " << out_devname; 
@@ -111,8 +109,7 @@ int main(int argc, char* argv[])
 			{
 				tv.tv_sec=1;
 				tv.tv_usec=0;
-				FD_SET(videoCapture->getFd(), &fdset);
-				int ret = select(videoCapture->getFd()+1, &fdset, NULL, NULL, &tv);
+				int ret = videoCapture->isReadable(&tv);
 				if (ret == 1)
 				{
 					char buffer[videoCapture->getBufferSize()];
