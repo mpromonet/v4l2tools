@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 			case 'F':	fps = atoi(optarg); break;
 			case 'b':	bitrate = atoi(optarg); break;
 			case 'c':	ratecontrolmode = VPX_CBR; break;
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
-			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READ; break;	
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READWRITE; break;	
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;

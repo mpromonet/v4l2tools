@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <linux/videodev2.h>
+#include <iostream>
 
 extern "C"
 {
@@ -207,7 +208,7 @@ int main (int argc, char **argv)
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;

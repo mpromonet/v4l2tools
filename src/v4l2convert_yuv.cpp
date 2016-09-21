@@ -68,8 +68,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READ; break;			
-			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READ; break;	
+			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READWRITE; break;	
 			case 'o':       outFormatStr = optarg ; break;
 			default:
 				std::cout << "option :" << c << " is unknown" << std::endl;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 							libyuv::ConvertFromI420(i420_p0, width,
 									i420_p1, width/2,
 									i420_p2, width/2,
-									(uint8*)outBuffer, sizeof(outBuffer),
+									(uint8*)outBuffer, 0,
 									width, height,
 									outformat);
 							

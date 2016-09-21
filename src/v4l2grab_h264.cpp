@@ -59,15 +59,7 @@ int main(int argc, char **argv)
 
 	bcm_host_init();
 	
-	DISPMANX_DISPLAY_HANDLE_T   display;
-	DISPMANX_RESOURCE_HANDLE_T  resource;
-	DISPMANX_MODEINFO_T         info;
-	VC_RECT_T                   rect;
 	uint32_t                    screen = 0;
-	uint32_t                    vc_image_ptr;
-	OMX_BUFFERHEADERTYPE *      buf = NULL;
-	OMX_BUFFERHEADERTYPE *      out = NULL;
-	COMPONENT_T *               video_encode = NULL;
 
 	int status = 0;
 	int framenumber = 0;
@@ -75,18 +67,17 @@ int main(int argc, char **argv)
 	int ret = 0;
 
 	fprintf(stderr, "Open display[%i]...\n", screen );
-	display = vc_dispmanx_display_open( screen );
+	DISPMANX_DISPLAY_HANDLE_T display = vc_dispmanx_display_open( screen );
 
+	DISPMANX_MODEINFO_T         info;
 	ret = vc_dispmanx_display_get_info(display, &info);
 	assert(ret == 0);
 	fprintf(stderr, "Display is %d x %d\n", info.width, info.height );
-	resource = vc_dispmanx_resource_create( VC_IMAGE_BGR888,
-		   info.width,
-		   info.height,
-		   &vc_image_ptr );
 
-	fprintf(stderr, "VC image ptr: 0x%X\n", vc_image_ptr);
+	uint32_t                    vc_image_ptr;
+	DISPMANX_RESOURCE_HANDLE_T resource = vc_dispmanx_resource_create( VC_IMAGE_BGR888, info.width, info.height, &vc_image_ptr);
 
+	VC_RECT_T                   rect;
 	ret = vc_dispmanx_rect_set(&rect, 0, 0, info.width, info.height);
 	assert(ret == 0);
 	
@@ -104,6 +95,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{ 
+		OMX_BUFFERHEADERTYPE *      buf = NULL;
+		OMX_BUFFERHEADERTYPE *      out = NULL;
+		COMPONENT_T *               video_encode = NULL;
+
 		ILCLIENT_T *client = encode_init(&video_encode);
 		if (client)
 		{
