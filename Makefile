@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2compress_vp8 v4l2compress_h264 v4l2convert_yuv
+ALL_PROGS = v4l2copy v4l2compress_vp8 v4l2compress_h264 v4l2convert_yuv 
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = g++
@@ -10,10 +10,11 @@ CFLAGS += -I v4l2wrapper/inc
 
 .DEFAULT_GOAL := all
 
-# raspberry grab -> compress H264 -> write V4L2 output
+# raspberry tools using ilclient
 ILCLIENTDIR=/opt/vc/src/hello_pi/libs/ilclient
 ifneq ($(wildcard $(ILCLIENTDIR)),)
-CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR)
+CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR) 
+CFLAGS  += -DOMX_SKIP64BIT
 LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
 
 v4l2compress_omx: src/encode_omx.cpp src/v4l2compress_omx.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a 
@@ -32,6 +33,11 @@ $(ILCLIENTDIR)/libilclient.a:
 ALL_PROGS+=v4l2grab_h264
 ALL_PROGS+=v4l2display_h264
 ALL_PROGS+=v4l2compress_omx
+endif
+
+# opencv
+ifneq (/usr/include/opencv,)
+ALL_PROGS+=v4l2detect_yuv
 endif
 
 all: $(ALL_PROGS)
@@ -65,6 +71,10 @@ v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv.a  libv4l2wrapper.a
 # read V4L2 capture -> compress using x264 -> write V4L2 output
 v4l2compress_h264: src/v4l2compress_h264.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
+
+v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lopencv_core -lopencv_objdetect -lopencv_imgproc -I libyuv/include
+	
 	
 upgrade:
 	git submodule foreach git pull origin master
