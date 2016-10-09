@@ -1,0 +1,9 @@
+dist: trusty
+before_install:
+- sudo apt-get install -y liblog4cpp5-dev libvpx-dev libx264-dev
+language: cpp
+compiler:
+- gcc
+script:
+- make
+
