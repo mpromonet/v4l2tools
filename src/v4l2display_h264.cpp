@@ -247,7 +247,7 @@ int main (int argc, char **argv)
 		int first_packet = 1;
 		
 		V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_H264,width,height,fps,verbose);
-		V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
+		V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 		timeval tv;	
 		
 		while((buf = ilclient_get_input_buffer(video_decode, 130, 1)) != NULL)

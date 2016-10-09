@@ -36,7 +36,7 @@ ALL_PROGS+=v4l2compress_omx
 endif
 
 # opencv
-ifneq (/usr/include/opencv,)
+ifneq ($(wildcard /usr/include/opencv),)
 ALL_PROGS+=v4l2detect_yuv
 endif
 

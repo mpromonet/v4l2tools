@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 	// init V4L2 capture interface
 	int format = V4L2_PIX_FMT_YUYV;
 	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
-	V4l2Capture* videoCapture = V4l2DeviceFactory::CreateVideoCapture(param, ioTypeIn);
+	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 	{
 		// init V4L2 output interface
 		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_VP8, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
-		V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, ioTypeOut);
+		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

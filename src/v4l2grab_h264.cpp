@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 	
 	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
 	V4L2DeviceParameters outparam(argv[1], V4L2_PIX_FMT_H264,  info.width, info.height, 0, true);
-	V4l2Output* videoOutput = V4l2DeviceFactory::CreateVideoOutput(outparam, ioTypeOut);
+	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 	if (videoOutput == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 output interface for device:" << argv[1]; 
