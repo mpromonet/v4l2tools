@@ -1,3 +1,4 @@
+[![Build status](https://travis-ci.org/mpromonet/v4l2tools.png)](https://travis-ci.org/mpromonet/v4l2tools)
 
 v4l2tools
 ====================
