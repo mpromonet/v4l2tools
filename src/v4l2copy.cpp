@@ -45,16 +45,16 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
-	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	
 	while ((c = getopt (argc, argv, "hP:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose   = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
+			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;

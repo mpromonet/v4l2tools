@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
-	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	std::string outFormatStr = "YU12";
 	
 	while ((c = getopt (argc, argv, "hv::" "o:" "rw")) != -1)
@@ -72,8 +72,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READWRITE; break;	
+			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 			case 'o':       outFormatStr = optarg ; break;
 			default:
 				std::cout << "option :" << c << " is unknown" << std::endl;

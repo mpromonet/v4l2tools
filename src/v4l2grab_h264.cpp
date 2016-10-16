@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	// initialize log4cpp
 	initLogger(verbose);
 	
-	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	V4L2DeviceParameters outparam(argv[1], V4L2_PIX_FMT_H264,  info.width, info.height, 0, true);
 	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 	if (videoOutput == NULL)

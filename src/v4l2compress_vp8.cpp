@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
 	int height = 480;	
 	int fps = 25;	
 	int c = 0;
-	V4l2DeviceFactory::IoType ioTypeIn  = V4l2DeviceFactory::IOTYPE_MMAP;
-	V4l2DeviceFactory::IoType ioTypeOut = V4l2DeviceFactory::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
+	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	int bitrate = 1000;
 	vpx_rc_mode ratecontrolmode = VPX_VBR;
 	
@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 			case 'F':	fps = atoi(optarg); break;
 			case 'b':	bitrate = atoi(optarg); break;
 			case 'c':	ratecontrolmode = VPX_CBR; break;
-			case 'r':	ioTypeIn  = V4l2DeviceFactory::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2DeviceFactory::IOTYPE_READWRITE; break;	
+			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
