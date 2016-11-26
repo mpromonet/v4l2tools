@@ -42,6 +42,34 @@ void sighandler(int)
        stop =1;
 }
 
+// -----------------------------------------
+//    convert string format to fourcc 
+// -----------------------------------------
+int decodeFormat(const char* fmt)
+{
+	char fourcc[4];
+	memset(&fourcc, 0, sizeof(fourcc));
+	if (fmt != NULL)
+	{
+		strncpy(fourcc, fmt, 4);	
+	}
+	return v4l2_fourcc(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
+}
+
+
+/* ---------------------------------------------------------------------------
+**  get VPx algo corresponding to V4L2 format
+** -------------------------------------------------------------------------*/
+const vpx_codec_iface_t* getAlgo(int format)
+{
+	const vpx_codec_iface_t* algo = NULL;
+	switch (format)
+	{
+		case V4L2_PIX_FMT_VP8 : algo = vpx_codec_vp8_cx(); break;
+		case V4L2_PIX_FMT_VP9 : algo = vpx_codec_vp9_cx(); break;
+	}
+	return algo;
+}
 /* ---------------------------------------------------------------------------
 **  main
 ** -------------------------------------------------------------------------*/
@@ -58,27 +86,32 @@ int main(int argc, char* argv[])
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	int bitrate = 1000;
 	vpx_rc_mode ratecontrolmode = VPX_VBR;
+	int format = V4L2_PIX_FMT_VP8;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "cb:")) != -1)
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "f:cb:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
-			case 'b':	bitrate = atoi(optarg); break;
-			case 'c':	ratecontrolmode = VPX_CBR; break;
+			case 'W':	width   = atoi(optarg); break;
+			case 'H':	height  = atoi(optarg); break;
+			case 'F':	fps     = atoi(optarg); break;
+			
+			case 'f':	format          = decodeFormat(optarg); break;
+			case 'b':	bitrate         = atoi(optarg);         break;
+			case 'c':	ratecontrolmode = VPX_CBR;              break;
+			
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
-				std::cout << "\t -v            : verbose " << std::endl;
-				std::cout << "\t -vv           : very verbose " << std::endl;
+				std::cout << "\t -v                   : verbose " << std::endl;
+				std::cout << "\t -vv                  : very verbose " << std::endl;
 
 				std::cout << "\t -b bitrate           : target bitrate " << std::endl;
 				std::cout << "\t -c                   : rate control mode CBR (default is VBR) " << std::endl;
+				std::cout << "\t -f format            : format (default is VP80) " << std::endl;
 
 				std::cout << "\t -W width             : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height            : V4L2 capture height (default "<< height << ")" << std::endl;
@@ -112,7 +145,7 @@ int main(int argc, char* argv[])
 		LOG(WARN) << "vpx_img_alloc"; 
 	}
 
-	const vpx_codec_iface_t* algo = vpx_codec_vp8_cx();
+	const vpx_codec_iface_t* algo = getAlgo(format);
 	vpx_codec_enc_cfg_t  cfg;
 	if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
 	{
@@ -131,8 +164,8 @@ int main(int argc, char* argv[])
 	}
 		
 	// init V4L2 capture interface
-	int format = V4L2_PIX_FMT_YUYV;
-	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
+	int informat = V4L2_PIX_FMT_YUYV;
+	V4L2DeviceParameters param(in_devname,informat,width,height,fps,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
@@ -142,7 +175,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_VP8, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
+		V4L2DeviceParameters outparam(out_devname, format, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	

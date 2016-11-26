@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2compress_vp8 v4l2compress_h264 v4l2convert_yuv 
+ALL_PROGS = v4l2copy v4l2compress_vpx v4l2compress_h264 v4l2convert_yuv 
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = g++
@@ -65,7 +65,7 @@ v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv.a libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vp8: src/v4l2compress_vp8.cpp libyuv.a  libv4l2wrapper.a
+v4l2compress_vpx: src/v4l2compress_vpx.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lvpx -I libyuv/include
 
 # read V4L2 capture -> compress using x264 -> write V4L2 output
