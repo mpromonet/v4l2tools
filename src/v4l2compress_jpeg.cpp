@@ -39,10 +39,27 @@ void sighandler(int)
        stop =1;
 }
 
+void jpeg_setsubsampling(struct jpeg_compress_struct& cinfo, unsigned int subsampling) {
+	if (subsampling == 0) {
+		cinfo.comp_info[0].h_samp_factor = 1;
+		cinfo.comp_info[0].v_samp_factor = 1;
+	} else 	if (subsampling == 1) {
+		cinfo.comp_info[0].h_samp_factor = 2;
+		cinfo.comp_info[0].v_samp_factor = 1;
+	} else 	if (subsampling == 2) {
+		cinfo.comp_info[0].h_samp_factor = 2;
+		cinfo.comp_info[0].v_samp_factor = 2;
+	} 
+	cinfo.comp_info[1].h_samp_factor = 1;
+	cinfo.comp_info[1].v_samp_factor = 1;
+	cinfo.comp_info[2].h_samp_factor = 1;
+	cinfo.comp_info[2].v_samp_factor = 1;	
+}
+
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
 ** -------------------------------------------------------------------------*/
-unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
+unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality, unsigned int subsampling)
 {
 	struct jpeg_error_mgr jerr;
 	struct jpeg_compress_struct cinfo;	
@@ -57,6 +74,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 	jpeg_mem_dest(&cinfo, &dest, &destsize);
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_quality(&cinfo, quality, TRUE);
+	jpeg_setsubsampling(cinfo,subsampling);
 	jpeg_start_compress(&cinfo, TRUE);
 
 	unsigned char bufline[cinfo.image_width * 3]; 
@@ -105,32 +123,48 @@ int main(int argc, char* argv[])
 	int width = 640;
 	int height = 480;	
 	int fps = 10;	
-	int c = 0;
+	int quality = 99;
+	int subsampling = 1;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	
-	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw")) != -1)
+	int c = 0;
+	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw" "q:s:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
+			
+			// capture options
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			
+			// output options
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+			
+			// JPEG options
+			case 'q':	quality = atoi(optarg); break;
+			case 's':	subsampling = atoi(optarg); break;
+
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
-				std::cout << "\t -v            : verbose " << std::endl;
-				std::cout << "\t -vv           : very verbose " << std::endl;
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
-				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
-				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
-				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
-				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
+				std::cout << "\t -v               : verbose " << std::endl;
+				std::cout << "\t -vv              : very verbose " << std::endl;
+				std::cout << "\t -W width         : V4L2 capture width (default "<< width << ")" << std::endl;
+				std::cout << "\t -H height        : V4L2 capture height (default "<< height << ")" << std::endl;
+				std::cout << "\t -F fps           : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				std::cout << "\t -r               : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
+				std::cout << "\t -w               : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
+				
+				std::cout << "\tcompressor options" << std::endl;
+				std::cout << "\t -q <quality>     : JPEG quality" << std::endl;
+				std::cout << "\t -s <subsampling> : JPEG sumsampling (0->JPEG 4:4:4 0->JPEG 4:2:2 0->JPEG 4:2:0)" << std::endl;
+				
+				std::cout << "\t source_device    : V4L2 capture device (default "<< in_devname << ")" << std::endl;
+				std::cout << "\t dest_device      : V4L2 output device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
 		}
@@ -189,7 +223,7 @@ int main(int argc, char* argv[])
 					else
 					{						
 						// compress
-						rsize = yuyv2jpeg(buffer, width, height, 95);							
+						rsize = yuyv2jpeg(buffer, width, height, quality, subsampling);							
 
 						int wsize = videoOutput->write(buffer, rsize);
 						LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
