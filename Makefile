@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2compress_vpx v4l2compress_h264 v4l2convert_yuv 
+ALL_PROGS = v4l2copy v4l2convert_yuv 
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = g++
@@ -40,6 +40,21 @@ ifneq ($(wildcard /usr/include/opencv),)
 ALL_PROGS+=v4l2detect_yuv
 endif
 
+# libx264
+ifneq ($(wildcard /usr/include/x264.h),)
+ALL_PROGS+=v4l2compress_h264
+endif
+
+# libvpx
+ifneq ($(wildcard /usr/include/vpx),)
+ALL_PROGS+=v4l2compress_vpx
+endif
+
+# libjpeg
+ifneq ($(wildcard /usr/include/jpeglib.h),)
+ALL_PROGS+=v4l2compress_jpeg
+endif
+
 all: $(ALL_PROGS)
 
 libyuv.a:
@@ -72,8 +87,13 @@ v4l2compress_vpx: src/v4l2compress_vpx.cpp libyuv.a  libv4l2wrapper.a
 v4l2compress_h264: src/v4l2compress_h264.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
 
+# read V4L2 capture -> compress using libjpeg -> write V4L2 output
+v4l2compress_jpeg: src/v4l2compress_jpeg.cpp libyuv.a  libv4l2wrapper.a
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -ljpeg -I libyuv/include
+
 v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lopencv_core -lopencv_objdetect -lopencv_imgproc -I libyuv/include
+
 	
 	
 upgrade:
