@@ -14,7 +14,7 @@ Dependencies
  - liblog4cpp5-dev
  - libvpx-dev      (for v4l2compress_vp8)
  - libx264-dev     (for v4l2compress_h264)
-
+ - libjpeg-dev     (for v4l2compress_jpeg)
  
 Tools
 -------
@@ -34,6 +34,10 @@ Tools
  - v4l2compress_h264 : 
 
 >	read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
+
+ - v4l2compress_jpeg : 
+
+>	read YUYV from a V4L2 capture device, compress in JPEG format using libjpeg and write to a V4L2 output device
 
 Tools for Raspberry
 -------------------
