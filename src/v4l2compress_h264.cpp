@@ -50,12 +50,14 @@ int main(int argc, char* argv[])
 	const char *out_devname = "/dev/video1";	
 	int width = 640;
 	int height = 480;	
-	int fps = 10;	
+	int fps = 25;	
 	int c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	int rc_method = -1;
+	int rc_value = 0;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw")) != -1)
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "q:f:")) != -1)
 	{
 		switch (c)
 		{
@@ -63,18 +65,26 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
+			
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+
+			case 'q':	rc_method = X264_RC_CQP; rc_value = atoi(optarg); break;	
+			case 'f':	rc_method = X264_RC_CRF;  rc_value = atof(optarg); break;	
+			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
+				
 				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
 				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
+				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;				
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
+				
+				
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
@@ -129,21 +139,23 @@ int main(int argc, char* argv[])
 			param.i_fps_den = 1;
 			param.i_keyint_min = fps;
 			param.i_keyint_max = fps;
-#if CQP
-			param.rc.i_rc_method = X264_RC_CQP;
-			param.rc.i_qp_constant = 20;
-#endif		
-#ifdef CRF
-			param.rc.i_rc_method = X264_RC_CRF;
-			param.rc.f_rf_constant = 10;
-			param.rc.f_rf_constant_max = 10;
-#endif		
-#ifdef CBR
-			param.rc.i_rc_method = X264_RC_ABR;
-			param.rc.i_vbv_buffer_size = 100;
-			param.rc.i_bitrate = param.rc.i_vbv_buffer_size * param.i_fps_num / param.i_fps_den;
-			param.rc.i_vbv_max_bitrate = param.rc.i_bitrate;
-#endif		
+			param.i_bframe = 0;
+			param.b_repeat_headers = 1;
+			
+			if (rc_method == X264_RC_CQP) {
+				param.rc.i_rc_method = rc_method;
+				param.rc.i_qp_constant = rc_value;
+				param.rc.i_qp_min = rc_value; 
+				param.rc.i_qp_max = rc_value;
+			} else if (rc_method == X264_RC_CRF) {
+				param.rc.i_rc_method = rc_method;
+				param.rc.f_rf_constant = rc_value;
+				param.rc.f_rf_constant_max = rc_value;
+			}
+			LOG(WARN) << "rc_method:" << param.rc.i_rc_method; 
+			LOG(WARN) << "i_qp_constant:" << param.rc.i_qp_constant; 
+			LOG(WARN) << "f_rf_constant:" << param.rc.f_rf_constant; 
+			
 			
 			x264_t* encoder = x264_encoder_open(&param);
 			if (!encoder)
