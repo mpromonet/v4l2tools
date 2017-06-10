@@ -30,21 +30,19 @@ int stop=0;
 
 int getFrame(char buffer[], int bufSize, int width, int height, int i)
 {
-    /* Y */
     for(int y=0;y<height;y++) {
         for(int x=0;x<width;x++) {
+            /* Y */
             buffer[ (y * width + x)*2 ] = x + y + i * 3;
+	    if ( (y * width + x) % 2 == 0) {	
+		/* U */
+		buffer[ (y * width + x)*2+1] = 128 + y + i * 2;
+	    } else {
+		/* V */
+		buffer[ (y * width + x)*2+1] = 64 + x + i * 5;
+	    }
         }
     }
-
-    /* Cb and Cr */
-    for(int y=0;y<height/2;y++) {
-        for(int x=0;x<width/2;x++) {
-            buffer[(y * width + x)*2*2+1] = 128 + y + i * 2;
-            buffer[(y * width + x)*2*2+3] = 64 + x + i * 5;
-        }
-    }
-
     return bufSize;
 }
 /* ---------------------------------------------------------------------------
