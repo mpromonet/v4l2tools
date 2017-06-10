@@ -30,35 +30,22 @@ int stop=0;
 
 int getFrame(char buffer[], int bufSize, int width, int height, int i)
 {
-    int size = width * height;
-    int picture_size = (size*3)/2;
-
-    char* data[3];
-    data[0] = buffer;
-    data[1] = data[0] + size;
-    data[2] = data[1] + size / 4;
-    size_t linesize[3];
-    linesize[0] = width;
-    linesize[1] = width / 2;
-    linesize[2] = width / 2;
-
-    /* prepare a dummy image */
     /* Y */
     for(int y=0;y<height;y++) {
         for(int x=0;x<width;x++) {
-            data[0][y * linesize[0] + x] = x + y + i * 3;
+            buffer[ (y * width + x)*2 ] = x + y + i * 3;
         }
     }
 
     /* Cb and Cr */
     for(int y=0;y<height/2;y++) {
         for(int x=0;x<width/2;x++) {
-            data[1][y * linesize[1] + x] = 128 + y + i * 2;
-            data[2][y * linesize[2] + x] = 64 + x + i * 5;
+            buffer[(y * width + x)*2*2+1] = 128 + y + i * 2;
+            buffer[(y * width + x)*2*2+3] = 64 + x + i * 5;
         }
     }
 
-    return picture_size;
+    return bufSize;
 }
 /* ---------------------------------------------------------------------------
 **  SIGINT handler
@@ -117,7 +104,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 output interface
-	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUV420, width, height, fps,verbose);
+	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, width, height, fps,verbose);
 	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 	if (videoOutput == NULL)
 	{	
@@ -128,8 +115,7 @@ int main(int argc, char* argv[])
 		LOG(NOTICE) << "Start generating frames to " << out_devname; 
 		signal(SIGINT,sighandler);				
 		int i=0;
-		int size = width * height;
-		int picture_size = (size*3)/2;
+		int picture_size = videoOutput->getBufferSize();
 		char buffer[picture_size]; 
 		
 		while (!stop) 
