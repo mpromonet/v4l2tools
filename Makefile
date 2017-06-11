@@ -52,7 +52,7 @@ endif
 
 # libjpeg
 ifneq ($(wildcard /usr/include/jpeglib.h),)
-ALL_PROGS+=v4l2compress_jpeg
+ALL_PROGS+=v4l2compress_jpeg v4l2uncompress_jpeg
 endif
 
 all: $(ALL_PROGS)
@@ -95,6 +95,11 @@ v4l2compress_h264: src/v4l2compress_h264.cpp libyuv.a  libv4l2wrapper.a
 v4l2compress_jpeg: src/v4l2compress_jpeg.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -ljpeg -I libyuv/include
 
+# read V4L2 capture -> uncompress using libjpeg -> write V4L2 output
+v4l2uncompress_jpeg: src/v4l2uncompress_jpeg.cpp libyuv.a  libv4l2wrapper.a
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -ljpeg -I libyuv/include
+	
+# try with opencv
 v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lopencv_core -lopencv_objdetect -lopencv_imgproc -I libyuv/include
 

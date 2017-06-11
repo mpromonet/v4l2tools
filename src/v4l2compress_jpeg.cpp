@@ -44,6 +44,7 @@ void sighandler(int)
 ** -------------------------------------------------------------------------*/
 unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
 {
+	//init compressor 
 	struct jpeg_error_mgr jerr;
 	struct jpeg_compress_struct cinfo;	
 	jpeg_create_compress(&cinfo);
@@ -55,18 +56,21 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 	
 	unsigned char* dest = NULL;
 	unsigned long  destsize = 0;
-	jpeg_mem_dest(&cinfo, &dest, &destsize);
+	jpeg_mem_dest(&cinfo, &dest, &destsize);	
+
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_quality(&cinfo, quality, TRUE);
+	
+	// uncompress picture	
 	jpeg_start_compress(&cinfo, TRUE);
 
-	unsigned char bufline[cinfo.image_width * 3]; 
+	unsigned char bufline[cinfo.image_width *  cinfo.num_components]; 
 	while (cinfo.next_scanline < cinfo.image_height) 
 	{ 
 		// convert line from YUYV -> YUV
+		unsigned int base = cinfo.next_scanline*cinfo.image_width * 2 ;
 		for (unsigned int i = 0; i < cinfo.image_width; i += 2) 
 		{ 
-			unsigned int base = cinfo.next_scanline*cinfo.image_width * 2 ;
 			bufline[i*3  ] = image_buffer[base + i*2  ]; 
 			bufline[i*3+1] = image_buffer[base + i*2+1]; 
 			bufline[i*3+2] = image_buffer[base + i*2+3]; 
@@ -78,6 +82,8 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 		jpeg_write_scanlines(&cinfo, &row, 1); 
 	}
 	jpeg_finish_compress(&cinfo);
+	
+	
 	if (dest != NULL)
 	{
 		if (destsize < width*height*2)
@@ -90,6 +96,8 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 		}
 		free(dest);
 	}
+	
+	// destroy
 	jpeg_destroy_compress(&cinfo);
 	
 	return destsize;
