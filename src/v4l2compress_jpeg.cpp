@@ -39,27 +39,10 @@ void sighandler(int)
        stop =1;
 }
 
-void jpeg_setsubsampling(struct jpeg_compress_struct& cinfo, unsigned int subsampling) {
-	if (subsampling == 0) {
-		cinfo.comp_info[0].h_samp_factor = 1;
-		cinfo.comp_info[0].v_samp_factor = 1;
-	} else 	if (subsampling == 1) {
-		cinfo.comp_info[0].h_samp_factor = 2;
-		cinfo.comp_info[0].v_samp_factor = 1;
-	} else 	if (subsampling == 2) {
-		cinfo.comp_info[0].h_samp_factor = 2;
-		cinfo.comp_info[0].v_samp_factor = 2;
-	} 
-	cinfo.comp_info[1].h_samp_factor = 1;
-	cinfo.comp_info[1].v_samp_factor = 1;
-	cinfo.comp_info[2].h_samp_factor = 1;
-	cinfo.comp_info[2].v_samp_factor = 1;	
-}
-
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
 ** -------------------------------------------------------------------------*/
-unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality, unsigned int subsampling)
+unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
 {
 	struct jpeg_error_mgr jerr;
 	struct jpeg_compress_struct cinfo;	
@@ -67,6 +50,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 	cinfo.image_width = width;
 	cinfo.image_height = height;
 	cinfo.input_components = 3;	
+	cinfo.in_color_space = JCS_YCbCr; 
 	cinfo.err = jpeg_std_error(&jerr);
 	
 	unsigned char* dest = NULL;
@@ -74,7 +58,6 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 	jpeg_mem_dest(&cinfo, &dest, &destsize);
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_quality(&cinfo, quality, TRUE);
-	jpeg_setsubsampling(cinfo,subsampling);
 	jpeg_start_compress(&cinfo, TRUE);
 
 	unsigned char bufline[cinfo.image_width * 3]; 
@@ -122,14 +105,13 @@ int main(int argc, char* argv[])
 	const char *out_devname = "/dev/video1";	
 	int width = 640;
 	int height = 480;	
-	int fps = 10;	
+	int fps = 25;	
 	int quality = 99;
-	int subsampling = 1;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	
 	int c = 0;
-	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw" "q:s:")) != -1)
+	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw" "q:")) != -1)
 	{
 		switch (c)
 		{
@@ -146,7 +128,6 @@ int main(int argc, char* argv[])
 			
 			// JPEG options
 			case 'q':	quality = atoi(optarg); break;
-			case 's':	subsampling = atoi(optarg); break;
 
 			case 'h':
 			{
@@ -161,7 +142,6 @@ int main(int argc, char* argv[])
 				
 				std::cout << "\tcompressor options" << std::endl;
 				std::cout << "\t -q <quality>     : JPEG quality" << std::endl;
-				std::cout << "\t -s <subsampling> : JPEG sumsampling (0->JPEG 4:4:4 0->JPEG 4:2:2 0->JPEG 4:2:0)" << std::endl;
 				
 				std::cout << "\t source_device    : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device      : V4L2 output device (default "<< out_devname << ")" << std::endl;
@@ -223,7 +203,7 @@ int main(int argc, char* argv[])
 					else
 					{						
 						// compress
-						rsize = yuyv2jpeg(buffer, width, height, quality, subsampling);							
+						rsize = yuyv2jpeg(buffer, videoOutput->getWidth(),  videoOutput->getHeight(), quality);							
 
 						int wsize = videoOutput->write(buffer, rsize);
 						LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
