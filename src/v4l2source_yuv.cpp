@@ -60,7 +60,7 @@ void sighandler(int)
 int main(int argc, char* argv[]) 
 {	
 	int verbose=0;
-	const char *out_devname = "/dev/video1";	
+	const char *out_devname = "/dev/video0";	
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
     	int width = 640;
     	int height = 480;
