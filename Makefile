@@ -46,7 +46,7 @@ ALL_PROGS+=v4l2compress_h264
 endif
 
 # libx265
-ifneq ($(wildcard /usr/include/x264.h),)
+ifneq ($(wildcard /usr/include/x265.h),)
 ALL_PROGS+=v4l2compress_x265
 endif
 
