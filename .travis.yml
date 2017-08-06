@@ -5,7 +5,6 @@ addons:
     - liblog4cpp5-dev
     - libvpx-dev
     - libx264-dev
-    - libx265-dev
     - libjpeg-dev
 language: cpp
 compiler:
