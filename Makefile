@@ -45,6 +45,11 @@ ifneq ($(wildcard /usr/include/x264.h),)
 ALL_PROGS+=v4l2compress_h264
 endif
 
+# libx265
+ifneq ($(wildcard /usr/include/x264.h),)
+ALL_PROGS+=v4l2compress_x265
+endif
+
 # libvpx
 ifneq ($(wildcard /usr/include/vpx),)
 ALL_PROGS+=v4l2compress_vpx
@@ -90,6 +95,10 @@ v4l2compress_vpx: src/v4l2compress_vpx.cpp libyuv.a  libv4l2wrapper.a
 # read V4L2 capture -> compress using x264 -> write V4L2 output
 v4l2compress_h264: src/v4l2compress_h264.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx264 -I libyuv/include
+
+# read V4L2 capture -> compress using x265 -> write V4L2 output
+v4l2compress_x265: src/v4l2compress_x265.cpp libyuv.a  libv4l2wrapper.a
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lx265 -I libyuv/include
 
 # read V4L2 capture -> compress using libjpeg -> write V4L2 output
 v4l2compress_jpeg: src/v4l2compress_jpeg.cpp libyuv.a  libv4l2wrapper.a
