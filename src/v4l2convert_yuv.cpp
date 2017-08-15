@@ -58,10 +58,10 @@ int main(int argc, char* argv[])
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
+				std::cout << argv[0] << " [-v[v]] [-r] [-w] [-o <format>] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
-				std::cout << "\t -o <format>   : output YUV format" << std::endl;
+				std::cout << "\t -o <format>   : output YUV format (default " << outFormatStr << ")" << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
@@ -142,7 +142,12 @@ int main(int argc, char* argv[])
 					int ret = videoCapture->isReadable(&tv);
 					if (ret == 1)
 					{
-						char inbuffer[videoCapture->getBufferSize()];
+						int bufferSize = videoCapture->getBufferSize();
+						if (bufferSize == 0) {
+							// for buggy drivers
+							bufferSize = width*height*3;
+						}
+						char inbuffer[bufferSize];
 						int rsize = videoCapture->read(inbuffer, sizeof(inbuffer));
 						if (rsize == -1)
 						{
