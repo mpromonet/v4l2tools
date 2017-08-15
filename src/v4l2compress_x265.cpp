@@ -197,27 +197,24 @@ int main(int argc, char* argv[])
 						timersub(&curTime,&refTime,&endodeTime);
 						refTime = curTime;
 						
-						if (frame_size >= 0)
-						{
-							if (i_nals > 1) {
-								int size = 0;
-								for (int i=0; i < i_nals; ++i) {
-									size+=nals[i].sizeBytes;
-								}
-								char buffer[size];
-								char* ptr = buffer;
-								for (int i=0; i < i_nals; ++i) {
-									memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
-									ptr+=nals[i].sizeBytes;
-								}
-								
-								int wsize = videoOutput->write(buffer,size);
-								LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
-								
-							} else {
-								int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
-								LOG(INFO) << "Copied size:" << wsize; 					
+						if (i_nals > 1) {
+							int size = 0;
+							for (int i=0; i < i_nals; ++i) {
+								size+=nals[i].sizeBytes;
 							}
+							char buffer[size];
+							char* ptr = buffer;
+							for (int i=0; i < i_nals; ++i) {
+								memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
+								ptr+=nals[i].sizeBytes;
+							}
+							
+							int wsize = videoOutput->write(buffer,size);
+							LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
+							
+						} else if (i_nals == 1) {
+							int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
+							LOG(INFO) << "Copied size:" << wsize; 					
 						}
 						
 						gettimeofday(&curTime, NULL);												
