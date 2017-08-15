@@ -54,8 +54,6 @@ int main(int argc, char* argv[])
 	int c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
-	int rc_method = -1;
-	int rc_value = 0;
 	
 	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw")) != -1)
 	{
@@ -147,8 +145,12 @@ int main(int argc, char* argv[])
 			{		
 				x265_picture *pic_in = x265_picture_alloc();
 				x265_picture_init(&param, pic_in);
+				char buff[width*height*3/2];
+				pic_in->planes[0]=buff;
+				pic_in->planes[1]=buff+width*height;
+				pic_in->planes[2]=buff+width*height*5/4;
 				
-				x265_picture pic_out;
+				x265_picture* pic_out = x265_picture_alloc();
 				
 				timeval tv;
 				timeval refTime;
@@ -173,9 +175,9 @@ int main(int argc, char* argv[])
 						refTime = curTime;
 						
 						ConvertToI420((const uint8*)buffer, rsize,
-							(uint8_t*)pic_in->planes[0], width,
-							(uint8_t*)pic_in->planes[1], width/2,
-							(uint8_t*)pic_in->planes[2], width/2,
+							(uint8*)pic_in->planes[0], width,
+							(uint8*)pic_in->planes[1], width/2,
+							(uint8*)pic_in->planes[2], width/2,
 							0, 0,
 							width, height,
 							width, height,
@@ -188,7 +190,7 @@ int main(int argc, char* argv[])
 						
 						x265_nal* nals = NULL;
 						uint32_t i_nals = 0;
-						int frame_size = x265_encoder_encode(encoder, &nals, &i_nals, pic_in, &pic_out);
+						int frame_size = x265_encoder_encode(encoder, &nals, &i_nals, pic_in, pic_out);
 						
 						gettimeofday(&curTime, NULL);												
 						timeval endodeTime;
@@ -200,7 +202,7 @@ int main(int argc, char* argv[])
 							for (uint32_t i=0; i < i_nals; ++i)
 							{
 								int wsize = videoOutput->write((char*)nals[i].payload, nals[i].sizeBytes);
-								LOG(INFO) << "Copied " << i << "/" << i_nals << " size:" << wsize; 					
+								LOG(INFO) << "Copied " << i+1 << "/" << i_nals << " size:" << wsize; 					
 							}
 						}
 						
@@ -209,7 +211,7 @@ int main(int argc, char* argv[])
 						timersub(&curTime,&refTime,&writeTime);
 						refTime = curTime;
 
-						LOG(DEBUG) << "dts:" << pic_out.dts << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
+						LOG(DEBUG) << "dts:" << pic_out->dts << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
 								<< " convertTime:" << (convertTime.tv_sec*1000+convertTime.tv_usec/1000)					
 								<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000)
 								<< " writeTime:" << (writeTime.tv_sec*1000+writeTime.tv_usec/1000); 					
@@ -223,6 +225,7 @@ int main(int argc, char* argv[])
 				}
 				
 				x265_picture_free(pic_in);
+				x265_picture_free(pic_out);
 				x265_encoder_close(encoder);
 			}
 			delete videoOutput;			

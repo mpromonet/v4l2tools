@@ -2,6 +2,7 @@ v4l2copy
 v4l2convert_yuv
 v4l2source_yuv
 v4l2compress_h264
+v4l2compress_x265
 v4l2compress_jpeg
 v4l2uncompress_jpeg
 *.a
