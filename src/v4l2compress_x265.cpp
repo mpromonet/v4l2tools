@@ -199,10 +199,24 @@ int main(int argc, char* argv[])
 						
 						if (frame_size >= 0)
 						{
-							for (uint32_t i=0; i < i_nals; ++i)
-							{
-								int wsize = videoOutput->write((char*)nals[i].payload, nals[i].sizeBytes);
-								LOG(INFO) << "Copied " << i+1 << "/" << i_nals << " size:" << wsize; 					
+							if (i_nals > 1) {
+								int size = 0;
+								for (int i=0; i < i_nals; ++i) {
+									size+=nals[i].sizeBytes;
+								}
+								char buffer[size];
+								char* ptr = buffer;
+								for (int i=0; i < i_nals; ++i) {
+									memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
+									ptr+=nals[i].sizeBytes;
+								}
+								
+								int wsize = videoOutput->write(buffer,size);
+								LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
+								
+							} else {
+								int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
+								LOG(INFO) << "Copied size:" << wsize; 					
 							}
 						}
 						
