@@ -33,11 +33,11 @@ extern "C"
 #include "V4l2Capture.h"
 #include "V4l2Output.h"
 
-int stop=0;
+bool stop=false;
 void sighandler(int)
 { 
        printf("SIGINT\n");
-       stop =1;
+       stop = true;
 }
 
 /* ---------------------------------------------------------------------------
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	{
 		switch (c)
 		{
-			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
+			case 'v':	verbose = 1; if (optarg && *optarg=='v') { verbose++; };  break;
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 						
 						x264_nal_t* nals = NULL;
 						int i_nals = 0;
-						int frame_size = x264_encoder_encode(encoder, &nals, &i_nals, &pic_in, &pic_out);
+						x264_encoder_encode(encoder, &nals, &i_nals, &pic_in, &pic_out);
 						
 						gettimeofday(&curTime, NULL);												
 						timeval endodeTime;
@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
 					else if (ret == -1)
 					{
 						LOG(NOTICE) << "stop error:" << strerror(errno); 
-						stop=1;
+						stop=true;
 					}
 				}
 				
