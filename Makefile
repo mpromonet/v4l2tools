@@ -116,14 +116,14 @@ v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
 h264bitstream/Makefile:
 	git submodule update --init h264bitstream	
 
-h264bitstream/.libs/libh264bitstream.a: h264bitstream/Makefile
+h264bitstream/.libs/libh264bitstream.so: h264bitstream/Makefile
 	cd h264bitstream && autoreconf -i -f && ./configure
 	make -C h264bitstream 
 
 hevcbitstream/Makefile:
 	git submodule update --init hevcbitstream	
 
-hevcbitstream/.libs/libhevcbitstream.a: hevcbitstream/Makefile
+hevcbitstream/.libs/libhevcbitstream.so: hevcbitstream/Makefile
 	cd hevcbitstream && autoreconf -i -f && ./configure
 	make -C hevcbitstream 
 
