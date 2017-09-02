@@ -127,10 +127,8 @@ hevcbitstream/.libs/libhevcbitstream.a: hevcbitstream/Makefile
 	cd hevcbitstream && autoreconf -i -f && ./configure
 	make -C hevcbitstream 
 
-v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.a  hevcbitstream/.libs/libhevcbitstream.a
-	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -Ih264bitstream  h264bitstream/.libs/libh264bitstream.a 
-	
-#	-Ihevcbitstream  hevcbitstream/.libs/libhevcbitstream.a
+v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.so  hevcbitstream/.libs/libhevcbitstream.so
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -Ih264bitstream  -Ihevcbitstream -Wl,-rpath=./h264bitstream/.libs,-rpath=./hevcbitstream/.libs
 	
 	
 upgrade:

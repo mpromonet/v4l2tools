@@ -26,7 +26,7 @@
 #include "V4l2Output.h"
 
 #include "h264_stream.h"
-//#include "hevc_stream.h"
+#include "hevc_stream.h"
 
 int stop=0;
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		h264_stream_t* h264 = h264_new();
-//		hevc_stream_t* hevc = hevc_new();
+		hevc_stream_t* hevc = hevc_new();
 		
 		timeval tv;
 		
@@ -114,23 +114,19 @@ int main(int argc, char* argv[])
 					if (videoCapture->getFormat() == V4L2_PIX_FMT_H264) {		
 						while ((find_nal_unit(p, rsize, &nal_start, &nal_end)>=-1) && (nal_end>nal_start)) {
 							p += nal_start;
-							read_nal_unit(h264, p, nal_end - nal_start);
-							LOG(NOTICE) << "    - nal:" << h264->nal->nal_unit_type;
-							
+							read_debug_nal_unit(h264, p, nal_end - nal_start);
 							p += (nal_end - nal_start);
 							rsize -= nal_end;
 						}
 					}
-/*					else if (videoCapture->getFormat() == V4L2_PIX_FMT_HEVC) {		
-						while (find_nal_unit(p, rsize, &nal_start, &nal_end) > 0) {
+					else if (videoCapture->getFormat() == V4L2_PIX_FMT_HEVC) {		
+						while ( (find_nal_unit(p, rsize, &nal_start, &nal_end)>=-1) && (nal_end>nal_start)) {
 							p += nal_start;
-							read_debug_hevc_nal_unit(hevc, p, nal_end - nal_start);
-							LOG(NOTICE) << "- nal:" << hevc->nal->nal_unit_type;
-							
+							read_debug_hevc_nal_unit(hevc, p, nal_end - nal_start);							
 							p += (nal_end - nal_start);
 							rsize -= nal_end;
 						}
-					}*/
+					}
 				}
 			}
 			else if (ret == -1)
