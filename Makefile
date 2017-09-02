@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv
+ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv v4l2dump
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = g++
@@ -112,6 +112,25 @@ v4l2uncompress_jpeg: src/v4l2uncompress_jpeg.cpp libyuv.a  libv4l2wrapper.a
 v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lopencv_core -lopencv_objdetect -lopencv_imgproc -I libyuv/include
 
+# dump
+h264bitstream/Makefile:
+	git submodule update --init h264bitstream	
+
+h264bitstream/.libs/libh264bitstream.a: h264bitstream/Makefile
+	cd h264bitstream && autoreconf -i -f && ./configure
+	make -C h264bitstream 
+
+hevcbitstream/Makefile:
+	git submodule update --init hevcbitstream	
+
+hevcbitstream/.libs/libhevcbitstream.a: hevcbitstream/Makefile
+	cd hevcbitstream && autoreconf -i -f && ./configure
+	make -C hevcbitstream 
+
+v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.a  hevcbitstream/.libs/libhevcbitstream.a
+	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -Ih264bitstream  h264bitstream/.libs/libh264bitstream.a 
+	
+#	-Ihevcbitstream  hevcbitstream/.libs/libhevcbitstream.a
 	
 	
 upgrade:
