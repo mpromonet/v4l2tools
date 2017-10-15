@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 		{		
 			LOG(NOTICE) << "Start Capturing from " << in_devname; 
 			x265_param param;
-			x265_param_default(&param);
+			x265_param_default_preset(&param, "ultrafast", "zerolatency");
 			if (verbose>1)
 			{
 				param.logLevel = X265_LOG_DEBUG;
@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
 			param.fpsDenom = 1;
 			param.bframes = 0;
 			param.bRepeatHeaders = 1;
-			param.internalCsp=X265_CSP_I420;
-						
+			param.keyframeMin = fps;
+			param.keyframeMax = fps;						
 			
 			x265_encoder* encoder = x265_encoder_open(&param);
 			if (!encoder)
@@ -190,42 +190,45 @@ int main(int argc, char* argv[])
 						
 						x265_nal* nals = NULL;
 						uint32_t i_nals = 0;
-						int frame_size = x265_encoder_encode(encoder, &nals, &i_nals, pic_in, pic_out);
+						if (x265_encoder_encode(encoder, &nals, &i_nals, pic_in, pic_out) > 0) {
 						
-						gettimeofday(&curTime, NULL);												
-						timeval endodeTime;
-						timersub(&curTime,&refTime,&endodeTime);
-						refTime = curTime;
-						
-						if (i_nals > 1) {
-							int size = 0;
-							for (int i=0; i < i_nals; ++i) {
-								size+=nals[i].sizeBytes;
-							}
-							char buffer[size];
-							char* ptr = buffer;
-							for (int i=0; i < i_nals; ++i) {
-								memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
-								ptr+=nals[i].sizeBytes;
+							gettimeofday(&curTime, NULL);												
+							timeval endodeTime;
+							timersub(&curTime,&refTime,&endodeTime);
+							refTime = curTime;
+							
+							if (i_nals > 1) {
+								int size = 0;
+								for (unsigned int i=0; i < i_nals; ++i) {
+									size+=nals[i].sizeBytes;
+								}
+								char buffer[size];
+								char* ptr = buffer;
+								for (unsigned int i=0; i < i_nals; ++i) {
+									memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
+									ptr+=nals[i].sizeBytes;
+								}
+								
+								int wsize = videoOutput->write(buffer,size);
+								LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
+								
+							} else if (i_nals == 1) {
+								int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
+								LOG(INFO) << "Copied size:" << wsize; 					
 							}
 							
-							int wsize = videoOutput->write(buffer,size);
-							LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
-							
-						} else if (i_nals == 1) {
-							int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
-							LOG(INFO) << "Copied size:" << wsize; 					
-						}
-						
-						gettimeofday(&curTime, NULL);												
-						timeval writeTime;
-						timersub(&curTime,&refTime,&writeTime);
-						refTime = curTime;
+							gettimeofday(&curTime, NULL);												
+							timeval writeTime;
+							timersub(&curTime,&refTime,&writeTime);
+							refTime = curTime;
 
-						LOG(DEBUG) << "dts:" << pic_out->dts << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
-								<< " convertTime:" << (convertTime.tv_sec*1000+convertTime.tv_usec/1000)					
-								<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000)
-								<< " writeTime:" << (writeTime.tv_sec*1000+writeTime.tv_usec/1000); 					
+							LOG(DEBUG) << "dts:" << pic_out->dts << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
+									<< " convertTime:" << (convertTime.tv_sec*1000+convertTime.tv_usec/1000)					
+									<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000)
+									<< " writeTime:" << (writeTime.tv_sec*1000+writeTime.tv_usec/1000); 					
+						} else {
+							LOG(NOTICE) << "encoder error"; 
+						}
 						
 					}
 					else if (ret == -1)
