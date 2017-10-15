@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
 			param.bRepeatHeaders = 1;
 			param.keyframeMin = fps;
 			param.keyframeMax = fps;						
+			param.bOpenGOP = 0;
 			
 			x265_encoder* encoder = x265_encoder_open(&param);
 			if (!encoder)
