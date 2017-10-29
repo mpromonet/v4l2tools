@@ -1,7 +1,9 @@
-dependencies:
-  pre:
-    - sudo apt-get update; sudo apt-get install -y liblog4cpp5-dev libvpx-dev libx264-dev libjpeg-dev 
-
-compile:
-  override:
-    - make
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/ubuntu-server
+    steps:
+      - checkout
+      - run: sudo apt-get update; sudo apt-get install -y liblog4cpp5-dev libvpx-dev libx264-dev libjpeg-dev 
+      - run: make
