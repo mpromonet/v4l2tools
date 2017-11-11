@@ -5,10 +5,6 @@ v4l2tools
 
 This is V4L2 tools based on libv4l2cpp
 
-License
-------------
-Domain public 
-
 Dependencies
 ------------
  - liblog4cpp5-dev
@@ -39,6 +35,9 @@ Tools
 
 >	read YUYV from a V4L2 capture device, compress in JPEG format using libjpeg and write to a V4L2 output device
 
+ - v4l2uncompress_jpeg : 
+
+>	read JPEG format from a V4L2 capture device, uncompress in JPEG format using libjpeg and write to a V4L2 output device
 Tools for Raspberry
 -------------------
 
