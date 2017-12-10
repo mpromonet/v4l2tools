@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0c2b3215b77a4a6f82d977986bca7842)](https://www.codacy.com/app/michelpromonet_2643/v4l2tools?utm_source=github.com&utm_medium=referral&utm_content=mpromonet/v4l2tools&utm_campaign=badger)
 [![Build status](https://travis-ci.org/mpromonet/v4l2tools.png)](https://travis-ci.org/mpromonet/v4l2tools)
 
 v4l2tools
