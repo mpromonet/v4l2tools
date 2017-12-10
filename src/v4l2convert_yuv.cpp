@@ -3,9 +3,9 @@
 ** support, and with no warranty, express or implied, as to its usefulness for
 ** any purpose.
 **
-** v4l2copy.cpp
+** v4l2convert.cpp
 ** 
-** Copy from a V4L2 capture device to an other V4L2 output device
+** Copy from a V4L2 capture device to an other V4L2 output device ands convert format to YU12
 ** 
 ** -------------------------------------------------------------------------*/
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 			}
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
-			case 'o':       outFormatStr = optarg ; break;
+			case 'o':   outFormatStr = optarg ; break;
 			default:
 				std::cout << "option :" << c << " is unknown" << std::endl;
 				break;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
-	if (videoCapture == NULL)
+	if (videoCapture == NULL || videoCapture->getFormat() == 0)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << in_devname; 
 	}
@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
 		int height   =  videoCapture->getHeight();
 				
 		// init V4L2 output interface
-		int outformat =  v4l2_fourcc(outFormatStr[0],outFormatStr[1],outFormatStr[2],outFormatStr[3]);
-		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
+		int outformat = v4l2_fourcc(outFormatStr[0], outFormatStr[1], outFormatStr[2], outFormatStr[3]);
+		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	

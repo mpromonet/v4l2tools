@@ -3,7 +3,7 @@
 ** support, and with no warranty, express or implied, as to its usefulness for
 ** any purpose.
 **
-** v4l2copy.cpp
+** v4l2detect.cpp
 ** 
 ** Copy from a V4L2 capture device to an other V4L2 output device
 ** 
