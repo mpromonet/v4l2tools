@@ -4,11 +4,11 @@
 v4l2tools
 ====================
 
-This is V4L2 tools based on libv4l2cpp
+This is simple V4L2 tools based on libv4l2cpp
 
 Dependencies
 ------------
- - liblog4cpp5-dev
+ - liblog4cpp5-dev (optional)
  - libvpx-dev      (for v4l2compress_vp8)
  - libx264-dev     (for v4l2compress_h264)
  - libjpeg-dev     (for v4l2compress_jpeg & v4l2uncompress_jpeg)
@@ -39,6 +39,11 @@ Tools
  - v4l2uncompress_jpeg : 
 
 >	read JPEG format from a V4L2 capture device, uncompress in JPEG format using libjpeg and write to a V4L2 output device
+
+ - v4l2dump          : 
+
+>	read from a V4L2 capture device and print to output frame information (work with H264 & HEVC)
+
 Tools for Raspberry
 -------------------
 

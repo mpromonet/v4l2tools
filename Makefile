@@ -1,11 +1,17 @@
 ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv v4l2dump
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
-CC = gcc
-CXX = g++
+CC = $(CROSS)gcc
+CXX = $(CROSS)g++
+PREFIX?=/usr
 
 # log4cpp
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/log4cpp/Category.hh),)
+$(info with log4cpp)
+CFLAGS += -DHAVE_LOG4CPP -I $(SYSROOT)$(PREFIX)/include
 LDFLAGS += -llog4cpp 
+endif
+
 # v4l2wrapper
 CFLAGS += -I v4l2wrapper/inc
 
