@@ -129,14 +129,14 @@ h264bitstream/Makefile:
 	git submodule update --init h264bitstream	
 
 h264bitstream/.libs/libh264bitstream.so: h264bitstream/Makefile
-	cd h264bitstream && autoreconf -i -f && ./configure
+	cd h264bitstream && autoreconf -i -f && ./configure --host $(shell $(CC) -dumpmachine)
 	make -C h264bitstream 
 
 hevcbitstream/Makefile:
 	git submodule update --init hevcbitstream	
 
 hevcbitstream/.libs/libhevcbitstream.so: hevcbitstream/Makefile
-	cd hevcbitstream && autoreconf -i -f && LDFLAGS=-lm ./configure
+	cd hevcbitstream && autoreconf -i -f && LDFLAGS=-lm ./configure --host $(shell $(CC) -dumpmachine)
 	make -C hevcbitstream 
 
 v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.so  hevcbitstream/.libs/libhevcbitstream.so
