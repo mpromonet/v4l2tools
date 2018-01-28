@@ -149,7 +149,7 @@ v4l2fuse: src/v4l2fuse.c
 upgrade:
 	git submodule foreach git pull origin master
 	
-install:
+install: all
 	mkdir -p $(PREFIX)/bin
 	install -D -m 0755 $(ALL_PROGS) $(PREFIX)/bin
 
