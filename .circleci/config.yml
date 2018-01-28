@@ -8,6 +8,8 @@ jobs:
       - checkout
       - run: sudo apt-get update; sudo apt-get install -y --no-install-recommends autoconf automake libtool git make g++ liblog4cpp5-dev libvpx-dev libx264-dev libjpeg-dev 
       - run: make
+      - store_artifacts:
+          path: .
 
 workflows:
   version: 2
