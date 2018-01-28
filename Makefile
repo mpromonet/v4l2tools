@@ -150,7 +150,8 @@ upgrade:
 	git submodule foreach git pull origin master
 	
 install:
-	install -m 0755 $(ALL_PROGS) $(PREFIX)/bin
+	mkdir -p $(PREFIX)/bin
+	install -D -m 0755 $(ALL_PROGS) $(PREFIX)/bin
 
 clean:
 	-@$(RM) $(ALL_PROGS) .*o *.a
