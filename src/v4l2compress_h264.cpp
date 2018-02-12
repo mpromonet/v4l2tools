@@ -56,8 +56,9 @@ int main(int argc, char* argv[])
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	int rc_method = -1;
 	int rc_value = 0;
+	std::string inFormatStr = "YUYV";
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "q:f:")) != -1)
+	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "i:" "q:f:")) != -1)
 	{
 		switch (c)
 		{
@@ -66,6 +67,8 @@ int main(int argc, char* argv[])
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
 			
+			case 'i':       inFormatStr = optarg ; break;
+
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 
@@ -101,12 +104,17 @@ int main(int argc, char* argv[])
 		out_devname = argv[optind];
 		optind++;
 	}	
+	// complete the fourcc
+	while (inFormatStr.size() < 4)
+	{
+		inFormatStr.append(" ");
+	}
 		
 	// initialize log4cpp
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	int format = V4L2_PIX_FMT_YUYV;
+	int format = v4l2_fourcc(inFormatStr[0], inFormatStr[1], inFormatStr[2], inFormatStr[3]);
 	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
@@ -199,7 +207,7 @@ int main(int argc, char* argv[])
 							0, 0,
 							width, height,
 							width, height,
-							libyuv::kRotate0, libyuv::FOURCC_YUY2);
+							libyuv::kRotate0, format);
 
 						gettimeofday(&curTime, NULL);												
 						timeval convertTime;
