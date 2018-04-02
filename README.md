@@ -12,7 +12,7 @@ Dependencies
  - liblog4cpp5-dev (optional)
  - libvpx-dev      (for v4l2compress_vpx)
  - libx264-dev     (for v4l2compress_h264)
- - libx264-dev     (for v4l2compress_hevc)
+ - libx265-dev     (for v4l2compress_hevc)
  - libjpeg-dev     (for v4l2compress_jpeg & v4l2uncompress_jpeg)
  
 Tools
