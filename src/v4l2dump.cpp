@@ -27,6 +27,7 @@
 
 #include "h264_stream.h"
 #include "hevc_stream.h"
+#include "libyuv.h"
 
 int stop=0;
 
@@ -125,6 +126,15 @@ int main(int argc, char* argv[])
 							read_debug_hevc_nal_unit(hevc, p, nal_end - nal_start);							
 							p += (nal_end - nal_start);
 							rsize -= nal_end;
+						}
+					}
+					else if (videoCapture->getFormat() == V4L2_PIX_FMT_JPEG) {		
+						int width = 0;
+						int height = 0;
+						if (libyuv::MJPGSize((const uint8*)buffer, rsize, &width, &height) == 0) {
+							LOG(WARN) << "libyuv::MJPGSize error"; 
+						} else {
+							LOG(WARN) << "libyuv::MJPGSize error"; 
 						}
 					}
 				}

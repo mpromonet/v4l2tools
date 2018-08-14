@@ -65,6 +65,8 @@ endif
 # libjpeg
 ifneq ($(wildcard /usr/include/jpeglib.h),)
 ALL_PROGS+=v4l2compress_jpeg v4l2uncompress_jpeg
+CFLAGS += -DHAVE_JPEG
+LDFLAGS += -ljpeg
 endif
 
 # libfuse
@@ -77,9 +79,9 @@ all: $(ALL_PROGS)
 libyuv.a:
 	git submodule init libyuv
 	git submodule update libyuv
-	make -C libyuv -f linux.mk
+	cd libyuv && cmake . && make 
 	mv libyuv/libyuv.a .
-	make -C libyuv -f linux.mk clean
+	make -C libyuv clean
 
 libv4l2wrapper.a: 
 	git submodule init v4l2wrapper
@@ -139,8 +141,8 @@ hevcbitstream/.libs/libhevcbitstream.so: hevcbitstream/Makefile
 	cd hevcbitstream && autoreconf -i -f && LDFLAGS=-lm ./configure --host $(shell $(CC) -dumpmachine)
 	make -C hevcbitstream 
 
-v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.so  hevcbitstream/.libs/libhevcbitstream.so
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -Ih264bitstream  -Ihevcbitstream -Wl,-rpath=./h264bitstream/.libs,-rpath=./hevcbitstream/.libs
+v4l2dump: src/v4l2dump.cpp libv4l2wrapper.a h264bitstream/.libs/libh264bitstream.so  hevcbitstream/.libs/libhevcbitstream.so libyuv.a
+	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -Ih264bitstream  -Ihevcbitstream -Wl,-rpath=./h264bitstream/.libs,-rpath=./hevcbitstream/.libs -I libyuv/include -DHAVE_JPEG -ljpeg
 
 v4l2fuse: src/v4l2fuse.c 
 	$(CC) -o $@ $(CFLAGS) $^ $(LDFLAGS) -D_FILE_OFFSET_BITS=64 -lfuse
