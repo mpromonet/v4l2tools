@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 				{
 					int nal_start = 0, nal_end = 0;
 					uint8_t* p = (uint8_t*)buffer;
-					LOG(NOTICE) << "size:" << rsize;
+					LOG(DEBUG) << "size:" << rsize;
 					if (videoCapture->getFormat() == V4L2_PIX_FMT_H264) {		
 						while ((find_nal_unit(p, rsize, &nal_start, &nal_end)>=-1) && (nal_end>nal_start)) {
 							p += nal_start;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 						int width = 0;
 						int height = 0;
 						if (libyuv::MJPGSize((const uint8*)buffer, rsize, &width, &height) == 0) {
-							LOG(WARN) << "libyuv::MJPGSize error"; 
+							LOG(NOTICE) << "libyuv::MJPGSize " << width << "x" << height; 
 						} else {
 							LOG(WARN) << "libyuv::MJPGSize error"; 
 						}
