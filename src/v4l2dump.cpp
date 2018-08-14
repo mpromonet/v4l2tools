@@ -128,7 +128,8 @@ int main(int argc, char* argv[])
 							rsize -= nal_end;
 						}
 					}
-					else if (videoCapture->getFormat() == V4L2_PIX_FMT_JPEG) {		
+					else if ( (videoCapture->getFormat() == V4L2_PIX_FMT_JPEG) 
+					        ||(videoCapture->getFormat() == V4L2_PIX_FMT_MJPEG) ) {		
 						int width = 0;
 						int height = 0;
 						if (libyuv::MJPGSize((const uint8*)buffer, rsize, &width, &height) == 0) {
