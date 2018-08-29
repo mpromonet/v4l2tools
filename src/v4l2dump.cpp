@@ -128,6 +128,7 @@ int main(int argc, char* argv[])
 							rsize -= nal_end;
 						}
 					}
+#ifdef HAVE_JPEG
 					else if ( (videoCapture->getFormat() == V4L2_PIX_FMT_JPEG) 
 					        ||(videoCapture->getFormat() == V4L2_PIX_FMT_MJPEG) ) {		
 						int width = 0;
@@ -138,6 +139,7 @@ int main(int argc, char* argv[])
 							LOG(WARN) << "libyuv::MJPGSize error"; 
 						}
 					}
+#endif
 				}
 			}
 			else if (ret == -1)
