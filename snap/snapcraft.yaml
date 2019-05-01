@@ -2,6 +2,29 @@
   version: git
   summary: v4l2 tools to read, convert & write
   description: |
+    * v4l2copy :
+    read from a V4L2 capture device and write to a V4L2 output device
+
+    * v4l2convert_YUV :
+    read an YUV format from a V4L2 capture device, convert to an other YUV format and write to a V4L2 output device
+
+    * v4l2compress_vpx :
+    read YUYV from a V4L2 capture device, compress in VP8/VP9 format using libvpx and write to a V4L2 output device
+
+    * v4l2compress_h264 :
+    read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
+
+    * v4l2compress_hevc :
+    read YUYV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
+
+    * v4l2compress_jpeg :
+    read YUYV from a V4L2 capture device, compress in JPEG format using libjpeg and write to a V4L2 output device
+
+    * v4l2uncompress_jpeg :
+    read JPEG format from a V4L2 capture device, uncompress in JPEG format using libjpeg and write to a V4L2 output device
+
+    * v4l2dump :
+    read from a V4L2 capture device and print to output frame information (work with H264 & HEVC)
 
   grade: stable 
   confinement: strict
