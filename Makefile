@@ -4,6 +4,7 @@ RM = rm -rf
 CC = $(CROSS)gcc
 CXX = $(CROSS)g++
 PREFIX?=/usr
+DESTDIR?=$(PREFIX)
 
 # log4cpp
 ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/log4cpp/Category.hh),)
@@ -152,8 +153,8 @@ upgrade:
 	git submodule foreach git pull origin master
 	
 install: all
-	mkdir -p $(PREFIX)/bin
-	install -D -m 0755 $(ALL_PROGS) $(PREFIX)/bin
+	mkdir -p $(DESTDIR)/bin
+	install -D -m 0755 $(ALL_PROGS) $(DESTDIR)/bin
 
 clean:
 	-@$(RM) $(ALL_PROGS) .*o *.a

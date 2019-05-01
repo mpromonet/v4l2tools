@@ -1,0 +1,38 @@
+  name: v4l2tools
+  version: git
+  summary: v4l2 tools to read, convert & write
+  description: |
+
+  grade: stable 
+  confinement: strict
+
+  parts:
+    v4l2tools:
+      plugin: make
+      source: .
+      source-type: git
+      build-packages:
+      - g++
+      - make
+      - pkg-config
+      - autoconf 
+      - automake 
+      - libtool
+      - libx264-dev
+      - libjpeg8-dev
+      stage-packages:
+      - x264
+      - libjpeg8
+
+  apps:
+    v4l2copy:
+      command: bin/v4l2copy 
+
+    v4l2compress-h264:
+      command: bin/v4l2compress_h264 
+
+    v4l2compress-jpeg:
+      command: bin/v4l2compress_jpeg 
+
+    v4l2uncompress-jpeg:
+      command: bin/v4l2uncompress_jpeg 

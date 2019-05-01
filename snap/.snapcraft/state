@@ -1,0 +1,27 @@
+!GlobalState
+assets:
+  build-packages:
+  - libgcc-7-dev=7.4.0-1ubuntu1~18.04
+  - libjpeg-turbo8-dev=1.5.2-0ubuntu5.18.04.1
+  - libjpeg-dev=8c-2ubuntu8
+  - cpp-7=7.4.0-1ubuntu1~18.04
+  - cpp=4:7.4.0-1ubuntu2.2
+  - g++=4:7.4.0-1ubuntu2.2
+  - gcc-7-base=7.4.0-1ubuntu1~18.04
+  - gcc=4:7.4.0-1ubuntu2.2
+  - libcilkrts5=7.4.0-1ubuntu1~18.04
+  - libasan4=7.4.0-1ubuntu1~18.04
+  - libstdc++-7-dev=7.4.0-1ubuntu1~18.04
+  - libx264-152=2:0.152.2854+gite9a5903-2
+  - libubsan0=7.4.0-1ubuntu1~18.04
+  - g++-7=7.4.0-1ubuntu1~18.04
+  - pkg-config=0.29.1-0ubuntu2
+  - gcc-7=7.4.0-1ubuntu1~18.04
+  - libx264-dev=2:0.152.2854+gite9a5903-2
+  - libjpeg8-dev=8c-2ubuntu8
+  - libltdl-dev=2.4.6-2
+  - autotools-dev=20180224.1
+  - automake=1:1.15.1-3ubuntu2
+  - autoconf=2.69-11
+  - libtool=2.4.6-2
+  build-snaps: []
