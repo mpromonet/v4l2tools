@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	
 	int c = 0;
-	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw" "q:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "W:H:F:" "rw" "q:")) != -1)
 	{
 		switch (c)
 		{
