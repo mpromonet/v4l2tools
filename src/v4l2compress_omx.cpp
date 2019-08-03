@@ -26,6 +26,8 @@ extern "C"
 #include "ilclient.h"
 }
 
+#include "libyuv.h"
+
 #include "logger.h"
 
 #include "V4l2Device.h"
@@ -53,31 +55,25 @@ int main(int argc, char* argv[])
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
-	int width = 640;
-	int height = 480;	
-	int fps = 10;	
-	int c = 0;
+	int bandwidth = 10000000;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	int openflags = O_RDWR | O_NONBLOCK;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw")) != -1)
+	int c = 0;
+	while ((c = getopt (argc, argv, "hv::rwB")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+                        case 'B':   openflags = O_RDWR; break;			
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
+				std::cout << argv[0] << " [-v[v]] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
@@ -101,7 +97,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_YUV420,width,height,fps,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,verbose, openflags);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
@@ -110,8 +106,12 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
+		bool needconvert = (V4L2_PIX_FMT_YUV420 != videoCapture->getFormat());
+		int width = videoCapture->getWidth();
+		int height = videoCapture->getHeight();	
+		
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, width, height, 0, verbose, openflags);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
@@ -129,10 +129,16 @@ int main(int argc, char* argv[])
 			ILCLIENT_T *client = encode_init(&video_encode);
 			if (client)
 			{
-				encode_config_input(video_encode, videoCapture->getWidth(), videoCapture->getHeight(), 30, OMX_COLOR_FormatYUV420PackedPlanar);
-				encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
+				encode_config_input(video_encode, width, height, 30, OMX_COLOR_FormatYUV420PackedPlanar);
+				encode_config_output(video_encode, OMX_VIDEO_CodingAVC, bandwidth);
 
 				encode_config_activate(video_encode);		
+				
+                                // intermediate I420 image
+                                uint8 i420_p0[width*height];
+                                uint8 i420_p1[width*height/2];
+                                uint8 i420_p2[width*height/2];
+				
 				timeval tv;
 				
 				LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 					
@@ -148,9 +154,44 @@ int main(int argc, char* argv[])
 						if (buf != NULL)
 						{
 							/* fill it */
-							int rsize = videoCapture->read((char*)buf->pBuffer, buf->nAllocLen);
-							LOG(DEBUG) << "read size:" << rsize << " buffer size:" << buf->nAllocLen; 
-							buf->nFilledLen = rsize;
+							if (needconvert) {
+								int bufferSize = videoCapture->getBufferSize();
+								if (bufferSize == 0) {
+									// for buggy drivers
+									bufferSize = width*height*3;
+								}
+								char inbuffer[bufferSize];
+								int rsize = videoCapture->read(inbuffer, sizeof(inbuffer));
+								if (rsize == -1)
+								{
+									LOG(NOTICE) << "stop " << strerror(errno); 
+									stop=1;					
+								}
+								else
+								{
+									libyuv::ConvertToI420((const uint8*)inbuffer, rsize,
+										i420_p0, width,
+										i420_p1, width/2,
+										i420_p2, width/2,
+										0, 0,
+										width, height,
+										width, height,
+										libyuv::kRotate0,  videoCapture->getFormat());
+
+									libyuv::ConvertFromI420(i420_p0, width,
+											i420_p1, width/2,
+											i420_p2, width/2,
+											(uint8*)buf->pBuffer, 0,
+											width, height,
+											V4L2_PIX_FMT_YUV420);
+									buf->nFilledLen = width*height*3/2;
+								}			
+							} else {
+								int rsize = videoCapture->read((char*)buf->pBuffer, buf->nAllocLen);
+								LOG(DEBUG) << "read size:" << rsize << " buffer size:" << buf->nAllocLen; 
+								buf->nFilledLen = rsize;
+							}								
+							
 
 							if (OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_encode), buf) != OMX_ErrorNone)
 							{
@@ -171,7 +212,7 @@ int main(int argc, char* argv[])
 								size_t sz = videoOutput->write((char*)out->pBuffer, out->nFilledLen);
 								if (sz != out->nFilledLen)
 								{
-									LOG(WARN) << "fwrite: Error emptying buffer:" << sz; 
+									LOG(WARN) << "fwrite: Error emptying buffer:" << sz << " " << out->nFilledLen; 
 								}
 								else
 								{
