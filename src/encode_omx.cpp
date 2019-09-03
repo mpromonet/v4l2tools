@@ -93,8 +93,8 @@ bool encode_config_input(COMPONENT_T* handle, int32_t width, int32_t height, int
 	def.format.video.nFrameWidth = width;
 	def.format.video.nFrameHeight = height;
 	def.format.video.xFramerate = framerate << 16;
-	def.format.video.nSliceHeight = def.format.video.nFrameHeight;
-	def.format.video.nStride = (def.format.video.nFrameWidth + def.nBufferAlignment - 1) & (~(def.nBufferAlignment - 1));
+	def.format.video.nSliceHeight = ALIGN_UP(def.format.video.nFrameHeight, 16);
+	def.format.video.nStride = def.format.video.nFrameWidth;
 	def.format.video.eColorFormat = colorFormat;
 
 	print_def(def);
@@ -108,7 +108,7 @@ bool encode_config_input(COMPONENT_T* handle, int32_t width, int32_t height, int
 	return true;
 }
 
-bool encode_config_output(COMPONENT_T* handle, OMX_VIDEO_CODINGTYPE codec, uint32_t bitrate)
+bool encode_config_output(COMPONENT_T* handle, OMX_VIDEO_CODINGTYPE codec, OMX_U32 bitrate)
 {
 	OMX_ERRORTYPE omx_return;
 	
@@ -206,13 +206,15 @@ bool encode_config_activate(COMPONENT_T* handle)
 
 void encode_deactivate(COMPONENT_T* handle)
 {
-	fprintf(stderr, "disabling port buffers for 200 and 201...\n");
+	fprintf(stderr, "disabling port buffers for 200\n");
 	ilclient_disable_port_buffers(handle, 200, NULL, NULL, NULL);
+	fprintf(stderr, "disabling port buffers for 201\n");
 	ilclient_disable_port_buffers(handle, 201, NULL, NULL, NULL);
 }
 
 void encode_deinit(COMPONENT_T *handle, ILCLIENT_T *client)
 {
+	fprintf(stderr, "deinit..\n");
         COMPONENT_T *list[] = {handle , NULL};
 
 	ilclient_state_transition(list, OMX_StateIdle);

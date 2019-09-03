@@ -202,25 +202,20 @@ int main(int argc, char* argv[])
 						out = ilclient_get_output_buffer(video_encode, 201, 0);
 						if (out != NULL)
 						{
-							OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
-							if (r != OMX_ErrorNone)
-							{
-								LOG(WARN) << "Error filling buffer:" << r; 
+							size_t sz = videoOutput->write((char*)out->pBuffer, out->nFilledLen);
+							if (sz != out->nFilledLen) {
+								LOG(WARN) << "fwrite: Error emptying buffer:" << sz << " " << out->nFilledLen; 
+							} else {
+								LOG(DEBUG) << "Writing frame size:" << sz; 
 							}
-							if (out->nFilledLen > 0)
-							{
-								size_t sz = videoOutput->write((char*)out->pBuffer, out->nFilledLen);
-								if (sz != out->nFilledLen)
-								{
-									LOG(WARN) << "fwrite: Error emptying buffer:" << sz << " " << out->nFilledLen; 
-								}
-								else
-								{
-									LOG(DEBUG) << "Writing frame size:" << sz; 
-								}
-							}
-							
 							out->nFilledLen = 0;
+						} else {
+							LOG(DEBUG) << "Not getting it "; 
+						}
+						
+						OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
+						if (r != OMX_ErrorNone) {
+							printf("Error sending buffer for filling: %x\n", r);
 						}					
 					}
 					else if (ret == -1)
