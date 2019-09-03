@@ -47,10 +47,9 @@ int main(int argc, char* argv[])
 {	
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
-	const char *out_devname = "/dev/video1";	
-	int width = 640;
-	int height = 480;	
-	int fps = 25;	
+	const char *out_devname = "/dev/video1";
+	int fps = 25;
+
 	int c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
@@ -58,16 +57,13 @@ int main(int argc, char* argv[])
 	int rc_value = 0;
 	std::string inFormatStr = "YUYV";
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "i:" "q:f:")) != -1)
+	while ((c = getopt (argc, argv, "hP:v::rwF:" "q:f:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') { verbose++; };  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
 			
-			case 'i':       inFormatStr = optarg ; break;
+			case 'F':       fps = atoi(optarg); break;			
 
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
@@ -80,10 +76,7 @@ int main(int argc, char* argv[])
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
-				
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;				
+							
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
 				
@@ -104,18 +97,12 @@ int main(int argc, char* argv[])
 		out_devname = argv[optind];
 		optind++;
 	}	
-	// complete the fourcc
-	while (inFormatStr.size() < 4)
-	{
-		inFormatStr.append(" ");
-	}
 		
 	// initialize log4cpp
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	int format = v4l2_fourcc(inFormatStr[0], inFormatStr[1], inFormatStr[2], inFormatStr[3]);
-	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
@@ -125,6 +112,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
+		int width = videoCapture->getWidth();
+		int height = videoCapture->getHeight();
 		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
@@ -207,7 +196,7 @@ int main(int argc, char* argv[])
 							0, 0,
 							width, height,
 							width, height,
-							libyuv::kRotate0, format);
+							libyuv::kRotate0, videoCapture->getFormat());
 
 						gettimeofday(&curTime, NULL);												
 						timeval convertTime;

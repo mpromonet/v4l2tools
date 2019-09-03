@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 	int openflags = O_RDWR | O_NONBLOCK;
 	
 	int c = 0;
-	while ((c = getopt (argc, argv, "hv::rwB")) != -1)
+	while ((c = getopt (argc, argv, "hv::rwBb:")) != -1)
 	{
 		switch (c)
 		{
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
                         case 'B':   openflags = O_RDWR; break;			
+			case 'b':   bandwidth = atoi(optarg); break;	
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] source_device dest_device" << std::endl;
@@ -156,10 +157,6 @@ int main(int argc, char* argv[])
 							/* fill it */
 							if (needconvert) {
 								int bufferSize = videoCapture->getBufferSize();
-								if (bufferSize == 0) {
-									// for buggy drivers
-									bufferSize = width*height*3;
-								}
 								char inbuffer[bufferSize];
 								int rsize = videoCapture->read(inbuffer, sizeof(inbuffer));
 								if (rsize == -1)
