@@ -44,9 +44,11 @@
       - libtool
       - libx264-dev
       - libjpeg8-dev
+      - libvpx-dev
       stage-packages:
       - x264
       - libjpeg8
+      - libvpx5
 
   apps:
     v4l2copy:
