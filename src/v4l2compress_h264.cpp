@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 	int rc_value = 0;
 	std::string inFormatStr = "YUYV";
 	
-	while ((c = getopt (argc, argv, "hP:v::rwF:" "q:f:")) != -1)
+	while ((c = getopt (argc, argv, "hv::rwF:" "q:f:")) != -1)
 	{
 		switch (c)
 		{
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,0,0,0,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)

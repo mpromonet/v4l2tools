@@ -78,9 +78,6 @@ int main(int argc, char* argv[])
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
-	int width = 640;
-	int height = 480;	
-	int fps = 25;	
 	int c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
@@ -88,14 +85,11 @@ int main(int argc, char* argv[])
 	vpx_rc_mode ratecontrolmode = VPX_VBR;
 	int format = V4L2_PIX_FMT_VP8;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw" "f:cb:")) != -1)
+	while ((c = getopt (argc, argv, "hv::rw" "f:cb:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width   = atoi(optarg); break;
-			case 'H':	height  = atoi(optarg); break;
-			case 'F':	fps     = atoi(optarg); break;
 			
 			case 'f':	format          = decodeFormat(optarg); break;
 			case 'b':	bitrate         = atoi(optarg);         break;
@@ -113,9 +107,6 @@ int main(int argc, char* argv[])
 				std::cout << "\t -c                   : rate control mode CBR (default is VBR) " << std::endl;
 				std::cout << "\t -f format            : format (default is VP80) " << std::endl;
 
-				std::cout << "\t -W width             : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height            : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps               : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -r                   : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w                   : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device        : V4L2 capture device (default "<< in_devname << ")" << std::endl;
@@ -138,34 +129,9 @@ int main(int argc, char* argv[])
 
 	// initialize log4cpp
 	initLogger(verbose);
-
-	vpx_image_t          raw;
-	if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
-	{
-		LOG(WARN) << "vpx_img_alloc"; 
-	}
-
-	const vpx_codec_iface_t* algo = getAlgo(format);
-	vpx_codec_enc_cfg_t  cfg;
-	if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
-	{
-		LOG(WARN) << "vpx_codec_enc_config_default"; 
-	}
-
-	cfg.g_w = width;
-	cfg.g_h = height;	
-	cfg.rc_end_usage = ratecontrolmode;
-	cfg.rc_target_bitrate = bitrate;
-	
-	vpx_codec_ctx_t      codec;
-	if(vpx_codec_enc_init(&codec, algo, &cfg, 0))    
-	{
-		LOG(WARN) << "vpx_codec_enc_init"; 
-	}
 		
 	// init V4L2 capture interface
-	int informat = V4L2_PIX_FMT_YUYV;
-	V4L2DeviceParameters param(in_devname,informat,width,height,fps,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
@@ -175,6 +141,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
+		int width = videoCapture->getWidth();
+		int height = videoCapture->getHeight();		
 		V4L2DeviceParameters outparam(out_devname, format, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
@@ -183,6 +151,30 @@ int main(int argc, char* argv[])
 		}
 		else
 		{		
+			vpx_image_t          raw;
+			if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
+			{
+				LOG(WARN) << "vpx_img_alloc"; 
+			}
+
+			const vpx_codec_iface_t* algo = getAlgo(format);
+			vpx_codec_enc_cfg_t  cfg;
+			if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
+			{
+				LOG(WARN) << "vpx_codec_enc_config_default"; 
+			}
+
+			cfg.g_w = width;
+			cfg.g_h = height;	
+			cfg.rc_end_usage = ratecontrolmode;
+			cfg.rc_target_bitrate = bitrate;
+			
+			vpx_codec_ctx_t      codec;
+			if(vpx_codec_enc_init(&codec, algo, &cfg, 0))    
+			{
+				LOG(WARN) << "vpx_codec_enc_init"; 
+			}
+	
 			LOG(NOTICE) << "Start Capturing from " << in_devname; 
 			timeval tv;
 			int flags=0;
@@ -207,7 +199,7 @@ int main(int argc, char* argv[])
 						0, 0,
 						width, height,
 						width, height,
-						libyuv::kRotate0, libyuv::FOURCC_YUY2);
+						libyuv::kRotate0, videoCapture->getFormat());
 													
 					if(vpx_codec_encode(&codec, &raw, frame_cnt++, 1, flags, VPX_DL_REALTIME))    
 					{					

@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,0,0,0,verbose, openflags);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose, openflags);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
