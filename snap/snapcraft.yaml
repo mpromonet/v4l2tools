@@ -48,7 +48,7 @@
       stage-packages:
       - x264
       - libjpeg8
-      - libvpx5
+      - libvpx3
 
   apps:
     v4l2copy:
