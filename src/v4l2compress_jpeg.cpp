@@ -42,7 +42,7 @@ void sighandler(int)
 /* ---------------------------------------------------------------------------
 **  convert yuyv -> jpeg
 ** -------------------------------------------------------------------------*/
-unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality)
+unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int height, unsigned int quality, int restartInterval)
 {
 	//init compressor 
 	struct jpeg_error_mgr jerr;
@@ -60,6 +60,7 @@ unsigned long yuyv2jpeg(char* image_buffer, unsigned int width, unsigned int hei
 
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_quality(&cinfo, quality, TRUE);
+        cinfo.restart_interval = restartInterval;
 	
 	// uncompress picture	
 	jpeg_start_compress(&cinfo, TRUE);
@@ -111,30 +112,26 @@ int main(int argc, char* argv[])
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
-	int width = 640;
-	int height = 480;	
-	int fps = 25;	
 	int quality = 99;
+	int restartInterval = 64;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	
 	int c = 0;
-	while ((c = getopt (argc, argv, "hv::" "W:H:F:" "rw" "q:")) != -1)
+	while ((c = getopt (argc, argv, "hv::" "rw" "i:q:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 			
 			// capture options
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			
 			// output options
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 			
 			// JPEG options
+			case 'i':	restartInterval = atoi(optarg); break;
 			case 'q':	quality = atoi(optarg); break;
 
 			case 'h':
@@ -142,14 +139,12 @@ int main(int argc, char* argv[])
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v               : verbose " << std::endl;
 				std::cout << "\t -vv              : very verbose " << std::endl;
-				std::cout << "\t -W width         : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height        : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps           : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -r               : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w               : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
 				
 				std::cout << "\tcompressor options" << std::endl;
 				std::cout << "\t -q <quality>     : JPEG quality" << std::endl;
+				std::cout << "\t -r <interval>    : JPEG restart interval" << std::endl;
 				
 				std::cout << "\t source_device    : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device      : V4L2 output device (default "<< out_devname << ")" << std::endl;
@@ -172,13 +167,17 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_YUYV,width,height,fps,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << in_devname; 
 	}
+	else if (videoCapture->getFormat() != V4L2_PIX_FMT_YUYV) 
+	{
+		LOG(WARN) << "V4L2 capture must be YUYV"; 
+	} 
 	else
 	{
 		// init V4L2 output interface
@@ -211,7 +210,7 @@ int main(int argc, char* argv[])
 					else
 					{						
 						// compress
-						rsize = yuyv2jpeg(buffer, videoOutput->getWidth(),  videoOutput->getHeight(), quality);							
+						rsize = yuyv2jpeg(buffer, videoOutput->getWidth(),  videoOutput->getHeight(), quality, restartInterval);	
 
 						int wsize = videoOutput->write(buffer, rsize);
 						LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
