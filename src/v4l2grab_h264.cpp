@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 			
 			while (!stop)
 			{
-				OMX_BUFFERHEADERTYPE *buf = ilclient_get_input_buffer(video_encode, 200, 1);
+				OMX_BUFFERHEADERTYPE *buf = ilclient_get_input_buffer(video_encode, 200, 0);
 				if (buf != NULL)
 				{
 					/* fill it */
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 					}
 				}
 					
-				OMX_BUFFERHEADERTYPE *out = ilclient_get_output_buffer(video_encode, 201, 1);
+				OMX_BUFFERHEADERTYPE *out = ilclient_get_output_buffer(video_encode, 201, 0);
 				if (out != NULL)
 				{
 					if (out->nFilledLen > 0)
@@ -191,8 +191,6 @@ int main(int argc, char **argv)
 					{
 						LOG(WARN) << "Error filling buffer:" << r ; 
 					}
-				} else {
-						LOG(WARN) << "Error filling buffer is null" ; 
 				}
 
 			} 
