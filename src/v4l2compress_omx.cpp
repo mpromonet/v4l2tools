@@ -233,14 +233,15 @@ int main(int argc, char* argv[])
 								LOG(DEBUG) << "Writing frame size:" << sz; 
 							}
 							out->nFilledLen = 0;
+
+							OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
+							if (r != OMX_ErrorNone) {
+								printf("Error sending buffer for filling: %x\n", r);
+							}					
 						} else {
 							LOG(DEBUG) << "Not getting it "; 
 						}
 						
-						OMX_ERRORTYPE r = OMX_FillThisBuffer(ILC_GET_HANDLE(video_encode), out);
-						if (r != OMX_ErrorNone) {
-							printf("Error sending buffer for filling: %x\n", r);
-						}					
 					}
 					else if (ret == -1)
 					{
