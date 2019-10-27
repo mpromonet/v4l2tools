@@ -158,21 +158,9 @@ bool encode_config_output(COMPONENT_T* handle, OMX_VIDEO_CODINGTYPE codec, OMX_U
 		return false;
 	}
    
+	// set profile & level
         OMX_VIDEO_PARAM_PROFILELEVELTYPE profileLevel;
         memset(&profileLevel, 0, sizeof(OMX_VIDEO_PARAM_PROFILELEVELTYPE));
-        profileLevel.nSize = sizeof(OMX_VIDEO_PARAM_PROFILELEVELTYPE);
-        profileLevel.nVersion.nVersion = OMX_VERSION;
-        profileLevel.nPortIndex = 201;
-
-       if (OMX_GetParameter(ILC_GET_HANDLE(handle), OMX_IndexParamVideoProfileLevelCurrent, &profileLevel) != OMX_ErrorNone)
-       {
-               fprintf(stderr, "%s:%d: OMX_GetParameter() for video_encode for bitrate port 201 failed!\n", __FUNCTION__, __LINE__);
-               return false;
-       }
-       fprintf(stderr, "Current profile=%u\n",profileLevel.eProfile);
-       fprintf(stderr, "Current level=%u\n",profileLevel.eLevel);
-
-	// set profile & level
         profileLevel.nSize = sizeof(OMX_VIDEO_PARAM_PROFILELEVELTYPE);
         profileLevel.nVersion.nVersion = OMX_VERSION;
         profileLevel.nPortIndex = 201;
