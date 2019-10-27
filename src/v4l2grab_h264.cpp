@@ -58,6 +58,7 @@ int main(int argc, char **argv)
 	int y = 0;	
 	int width = 0;
 	int height = 0;	
+	int bandwidth = 10000000;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
 	int verbose = 0;
 	
@@ -146,7 +147,7 @@ int main(int argc, char **argv)
 		if (client)
 		{
 			encode_config_input(video_encode, width, height, 30, OMX_COLOR_Format24bitBGR888);
-			encode_config_output(video_encode, OMX_VIDEO_CodingAVC, 10000000);
+			encode_config_output(video_encode, OMX_VIDEO_CodingAVC, bandwidth, OMX_VIDEO_AVCProfileBaseline, OMX_VIDEO_AVCLevel4);
 
 			encode_config_activate(video_encode);
 
