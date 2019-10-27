@@ -49,20 +49,25 @@ void sighandler(int)
 
 OMX_VIDEO_AVCPROFILETYPE decodeProfile(const char* profile)
 {
-	OMX_VIDEO_AVCPROFILETYPE profile = OMX_VIDEO_AVCProfileMax;
+	OMX_VIDEO_AVCPROFILETYPE profileType = OMX_VIDEO_AVCProfileMax;
 	if (strcmp(profile,"Baseline")==0) {
-		profile = OMX_VIDEO_AVCProfileBaseline;
+		profileType = OMX_VIDEO_AVCProfileBaseline;
 	}
 	else if (strcmp(profile,"Main")==0) {
-		profile = OMX_VIDEO_AVCProfileMain;
+		profileType = OMX_VIDEO_AVCProfileMain;
 	}
 	else if (strcmp(profile,"Extended")==0) {
-		profile = OMX_VIDEO_AVCProfileExtended;
+		profileType = OMX_VIDEO_AVCProfileExtended;
 	}
 	else if (strcmp(profile,"High")==0) {
-		profile = OMX_VIDEO_AVCProfileHigh;
+		profileType = OMX_VIDEO_AVCProfileHigh;
 	}
-	return profile;
+	return profileType;
+}
+
+OMX_VIDEO_AVCLEVELTYPE decodeLevel(const char* level)
+{
+	return OMX_VIDEO_AVCLevel4;
 }
 
 /* ---------------------------------------------------------------------------
