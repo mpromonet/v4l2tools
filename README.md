@@ -30,15 +30,15 @@ Tools
 
  - v4l2compress_vpx  : 
 
->	read YUYV from a V4L2 capture device, compress in VP8/VP9 format using libvpx and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in VP8/VP9 format using libvpx and write to a V4L2 output device
 
  - v4l2compress_h264 : 
 
->	read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
 
  - v4l2compress_hevc : 
 
->	read YUYV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
 
  - v4l2compress_jpeg : 
 
@@ -51,6 +51,10 @@ Tools
  - v4l2dump          : 
 
 >	read from a V4L2 capture device and print to output frame information (work with H264 & HEVC)
+
+ - v4l2source_yuv :
+ 
+>	generate YUYV frames and write to a V4L2 output device
 
 Tools for Raspberry
 -------------------
@@ -65,7 +69,7 @@ Tools for Raspberry
 
  - v4l2compress_omx : 
 
->	read YUV420 from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device
 
 Build
 -----
