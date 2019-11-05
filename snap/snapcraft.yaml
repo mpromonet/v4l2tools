@@ -60,7 +60,7 @@
     v4l2compress-h264:
       command: bin/v4l2compress_h264 
       
-    v4l2compress_vpx:
+    v4l2compress-vpx:
       command: bin/v4l2compress_vpx      
 
     v4l2compress-jpeg:
@@ -69,5 +69,5 @@
     v4l2uncompress-jpeg:
       command: bin/v4l2uncompress_jpeg 
       
-    v4l2source_yuv:
+    v4l2source-yuv:
       command: bin/v4l2source_yuv 
