@@ -14,7 +14,7 @@
     * v4l2compress_h264 :
     read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
 
-    * v4l2compress_hevc :
+    * v4l2compress_x265 :
     read YUYV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
 
     * v4l2compress_jpeg :
@@ -25,6 +25,9 @@
 
     * v4l2dump :
     read from a V4L2 capture device and print to output frame information (work with H264 & HEVC)
+
+    * v4l2source_yuv :
+    generate YUYV frames and write to a V4L2 output device
 
   grade: stable 
   confinement: strict
@@ -56,9 +59,15 @@
 
     v4l2compress-h264:
       command: bin/v4l2compress_h264 
+      
+    v4l2compress_vpx:
+      command: bin/v4l2compress_vpx      
 
     v4l2compress-jpeg:
       command: bin/v4l2compress_jpeg 
 
     v4l2uncompress-jpeg:
       command: bin/v4l2uncompress_jpeg 
+      
+    v4l2source_yuv:
+      command: bin/v4l2source_yuv 
