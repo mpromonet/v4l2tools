@@ -60,6 +60,14 @@ bool encode_config_decoder(COMPONENT_T* handle)
 		fprintf(stderr, "%s:%d: OMX_SetParameter() for bitrate for video_decoder failed with %x!\n", __FUNCTION__, __LINE__, omx_return);
 		return false;	   
 	}
+	
+	if (ilclient_enable_port_buffers(handle, 130, NULL, NULL, NULL) != 0)
+	{
+		fprintf(stderr, "cannot enable video_decode port\n");
+		return false;
+	}		
+	ilclient_change_component_state(handle, OMX_StateExecuting);
+	
 	return true;   
 }   
 
@@ -144,15 +152,8 @@ bool encode_config_activate_decode_clock(COMPONENT_T* video_render, COMPONENT_T*
 		return false;
 	}
 	ilclient_change_component_state(clock, OMX_StateExecuting);
+	ilclient_change_component_state(video_decode, OMX_StateIdle);
 	
-	ilclient_change_component_state(video_decode, OMX_StateIdle);	
-	if (ilclient_enable_port_buffers(video_decode, 130, NULL, NULL, NULL) != 0)
-	{
-		fprintf(stderr, "cannot enable video_decode port\n");
-		return false;
-	}
-	ilclient_change_component_state(video_decode, OMX_StateExecuting);
-
 	return true;
 }
 
@@ -193,30 +194,21 @@ int main (int argc, char **argv)
 {
 	
 	const char *in_devname = "/dev/video0";	
-	int  width = 640;
-	int  height = 480;	
-	int  fps = 10;	
 	int  c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	int  verbose = 0;
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::r")) != -1)
+	while ((c = getopt (argc, argv, "hv::r")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
-			case 'F':	fps = atoi(optarg); break;
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				exit(0);
@@ -232,82 +224,87 @@ int main (int argc, char **argv)
 
 	COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *video_render = NULL, *clock = NULL;
 	TUNNEL_T tunnel[4];
-	int status = 0;
 	memset(tunnel, 0, sizeof(tunnel));
 
 	ILCLIENT_T *client = encode_init(&video_decode, &video_render, &clock, &video_scheduler);
 	if(client != NULL)
 	{
 		encode_config_clock(clock);
-		encode_config_decoder(video_decode);
 		encode_config_activate_decode_clock(video_render, clock, video_scheduler, video_decode, tunnel);
-
+		encode_config_decoder(video_decode);
+			
 		OMX_BUFFERHEADERTYPE *buf = NULL;
 		int port_settings_changed = 0;
 		int first_packet = 1;
 		
-		V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_H264,width,height,fps,verbose);
+		V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
 		V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
-		timeval tv;	
-		
-		while((buf = ilclient_get_input_buffer(video_decode, 130, 1)) != NULL)
-		{
-			tv.tv_sec=1;
-			tv.tv_usec=0;
-			int ret = videoCapture->isReadable(&tv);
-			if (ret == 1)
-			{
-				buf->nFilledLen = videoCapture->read( (char*)buf->pBuffer, buf->nAllocLen);		
 
-				if (port_settings_changed == 0) 
+		if (videoCapture) {
+
+			if ( videoCapture->getFormat() != V4L2_PIX_FMT_H264 ) {
+				printf("capture device need to be H264\n");
+			} else {
+				timeval tv;	
+				
+				while((buf = ilclient_get_input_buffer(video_decode, 130, 1)) != NULL)
 				{
-					if (ilclient_remove_event(video_decode, OMX_EventPortSettingsChanged, 131, 0, 0, 1) == 0) 
+					tv.tv_sec=1;
+					tv.tv_usec=0;
+					int ret = videoCapture->isReadable(&tv);
+					if (ret == 1)
 					{
-						printf("port_settings_changed\n");
-						port_settings_changed = 1;
-						encode_config_activate_scheduler_render(video_render, video_scheduler, tunnel);
+						buf->nFilledLen = videoCapture->read( (char*)buf->pBuffer, buf->nAllocLen);		
+
+						if (port_settings_changed == 0) 
+						{
+							if (ilclient_remove_event(video_decode, OMX_EventPortSettingsChanged, 131, 0, 0, 1) == 0) 
+							{
+								printf("port_settings_changed\n");
+								port_settings_changed = 1;
+								encode_config_activate_scheduler_render(video_render, video_scheduler, tunnel);
+							}
+						}
+
+						if(!buf->nFilledLen)
+						{
+							printf("no more data\n");
+							break;
+						} else {
+							printf("size:%d\n", buf->nFilledLen);
+						}
+
+						buf->nOffset = 0;				
+						if(first_packet)
+						{
+							printf("first packet\n");
+							buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
+							first_packet = 0;
+						}
+						else
+						{
+							buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN;
+						}
+
+						if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_decode), buf) != OMX_ErrorNone)
+						{
+							printf("error emptying buffer\n");
+							break;
+						}
 					}
-					else
-					{
-						printf("waiting...\n");
-					}
-				}
-
-				if(!buf->nFilledLen)
-				{
-					printf("no more data\n");
-					break;
-				}
-
-				buf->nOffset = 0;				
-				if(first_packet)
-				{
-					printf("first packet\n");
-					buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
-					first_packet = 0;
-				}
-				else
-				{
-					buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN;
-				}
-
-				if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(video_decode), buf) != OMX_ErrorNone)
-				{
-					status = -6;
-					break;
 				}
 			}
+
+			buf->nFilledLen = 0;
+			buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+
+			encode_deactivate(video_render, video_decode, tunnel);
+			COMPONENT_T *list[] = {video_decode, video_render, clock, video_scheduler, NULL};      
+			encode_deinit(list, tunnel, client);
 		}
-
-		buf->nFilledLen = 0;
-		buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
-
-		encode_deactivate(video_render, video_decode, tunnel);
-		COMPONENT_T *list[] = {video_decode, video_render, clock, video_scheduler, NULL};      
-		encode_deinit(list, tunnel, client);
 	}
 
-	return status;
+	return 0;
 }
 
 
