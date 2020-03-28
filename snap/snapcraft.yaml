@@ -14,7 +14,7 @@
     * v4l2compress_h264 :
     read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
 
-    * v4l2compress_hevc :
+    * v4l2compress_x265 :
     read YUYV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
 
     * v4l2compress_jpeg :
@@ -43,10 +43,12 @@
       - automake 
       - libtool
       - libx264-dev
+      - libx265-dev
       - libjpeg8-dev
       - libvpx-dev
       stage-packages:
       - x264
+      - x265
       - libjpeg8
       - libvpx3
 
@@ -56,6 +58,9 @@
 
     v4l2compress-h264:
       command: bin/v4l2compress_h264 
+
+    v4l2compress-x265:
+      command: bin/v4l2compress_x265 
 
     v4l2compress-jpeg:
       command: bin/v4l2compress_jpeg 

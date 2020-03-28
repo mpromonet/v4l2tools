@@ -36,7 +36,7 @@ Tools
 
 >	read YUYV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
 
- - v4l2compress_hevc : 
+ - v4l2compress_x265 : 
 
 >	read YUYV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
 
