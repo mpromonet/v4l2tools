@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 	if (videoOutput == NULL)
 	{	
-		LOG(WARN) << "Cannot create V4L2 output interface for device:" << argv[1]; 
+		LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
 		status = -1;
 	}
 	else
