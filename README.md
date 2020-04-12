@@ -2,6 +2,7 @@
 [![Build status](https://travis-ci.org/mpromonet/v4l2tools.png)](https://travis-ci.org/mpromonet/v4l2tools)
 [![CircleCI](https://circleci.com/gh/mpromonet/v4l2tools.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2tools)
 [![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2tools.svg)](https://build.snapcraft.io/user/mpromonet/v4l2tools)
+[![GithubCI](https://github.com/mpromonet/v4l2tools/workflows/C/C++%20CI/badge.svg)](https://github.com/mpromonet/v4l2tools/actions)
 
 
 v4l2tools
