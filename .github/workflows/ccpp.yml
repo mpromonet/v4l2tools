@@ -9,8 +9,13 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+      
+    - name: apt
+      run: sudo apt-get install -y --no-install-recommends autoconf automake libtool git cmake make g++ liblog4cpp5-dev libvpx-dev libx264-dev libjpeg-dev
+        
     - name: make
       run: make
+      
     - name: install
       run: make install DESTDIR=$PWD/artifact
       
