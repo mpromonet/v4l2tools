@@ -20,18 +20,13 @@
 
 #include <fstream>
 
-extern "C" 
-{
-	#include "x265.h"
-}
-
-#include "libyuv.h"
-
 #include "logger.h"
 
 #include "V4l2Device.h"
 #include "V4l2Capture.h"
 #include "V4l2Output.h"
+
+#include "x265encoder.h"
 
 int stop=0;
 void sighandler(int)
@@ -47,35 +42,33 @@ int main(int argc, char* argv[])
 {	
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
-	const char *out_devname = "/dev/video1";	
-	int width = 640;
-	int height = 480;	
+	const char *out_devname = "/dev/video1";		
 	int fps = 25;	
 	int c = 0;
 	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
 	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	int rc_method = X265_RC_ABR;
+	int rc_value = 0;	
 	
-	while ((c = getopt (argc, argv, "hW:H:P:F:v::rw")) != -1)
+	while ((c = getopt (argc, argv, "hF:v::rw")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'W':	width = atoi(optarg); break;
-			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
 			
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
 			
+			case 'q':	rc_method = X265_RC_CQP; rc_value = atoi(optarg); break;	
+			case 'f':	rc_method = X265_RC_CRF;  rc_value = atof(optarg); break;	
+
 			case 'h':
 			{
-				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
+				std::cout << argv[0] << " [-v[v]] source_device dest_device" << std::endl;
 				std::cout << "\t -v            : verbose " << std::endl;
 				std::cout << "\t -vv           : very verbose " << std::endl;
 				
-				std::cout << "\t -W width      : V4L2 capture width (default "<< width << ")" << std::endl;
-				std::cout << "\t -H height     : V4L2 capture height (default "<< height << ")" << std::endl;
-				std::cout << "\t -F fps        : V4L2 capture framerate (default "<< fps << ")" << std::endl;				
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;				
 				
@@ -101,8 +94,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	int format = V4L2_PIX_FMT_YUYV;
-	V4L2DeviceParameters param(in_devname,format,width,height,fps,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
 	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
 	
 	if (videoCapture == NULL)
@@ -112,7 +104,9 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_HEVC, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
+		int width = videoCapture->getWidth();
+		int height = videoCapture->getHeight();
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_HEVC, width, height, 0, verbose);		
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
@@ -121,42 +115,18 @@ int main(int argc, char* argv[])
 		else
 		{		
 			LOG(NOTICE) << "Start Capturing from " << in_devname; 
-			x265_param param;
-			x265_param_default_preset(&param, "ultrafast", "zerolatency");
-			if (verbose>1)
-			{
-				param.logLevel = X265_LOG_DEBUG;
-			}
-			param.sourceWidth = width;
-			param.sourceHeight = height;
-			param.fpsNum = fps;
-			param.fpsDenom = 1;
-			param.bframes = 0;
-			param.bRepeatHeaders = 1;
-			param.keyframeMin = fps;
-			param.keyframeMax = fps;						
-			param.bOpenGOP = 0;
-			
-			x265_encoder* encoder = x265_encoder_open(&param);
+
+			X265Encoder* encoder = new X265Encoder(width, height, fps, rc_method, rc_value, verbose);
 			if (!encoder)
 			{
 				LOG(WARN) << "Cannot create X265 encoder for device:" << in_devname; 
 			}
 			else
-			{		
-				x265_picture *pic_in = x265_picture_alloc();
-				x265_picture_init(&param, pic_in);
-				char buff[width*height*3/2];
-				pic_in->planes[0]=buff;
-				pic_in->planes[1]=buff+width*height;
-				pic_in->planes[2]=buff+width*height*5/4;
-				
-				x265_picture* pic_out = x265_picture_alloc();
-				
+			{						
 				timeval tv;
 				timeval refTime;
 				timeval curTime;
-				
+
 				LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 					
 				signal(SIGINT,sighandler);
 				while (!stop) 
@@ -175,73 +145,24 @@ int main(int argc, char* argv[])
 						timersub(&curTime,&refTime,&captureTime);
 						refTime = curTime;
 						
-						ConvertToI420((const uint8*)buffer, rsize,
-							(uint8*)pic_in->planes[0], width,
-							(uint8*)pic_in->planes[1], width/2,
-							(uint8*)pic_in->planes[2], width/2,
-							0, 0,
-							width, height,
-							width, height,
-							libyuv::kRotate0, libyuv::FOURCC_YUY2);
+						encoder->convertEncodeWrite(buffer, rsize,videoCapture->getFormat(), videoOutput);
 
 						gettimeofday(&curTime, NULL);												
-						timeval convertTime;
-						timersub(&curTime,&refTime,&convertTime);
+						timeval endodeTime;
+						timersub(&curTime,&refTime,&endodeTime);
 						refTime = curTime;
-						
-						x265_nal* nals = NULL;
-						uint32_t i_nals = 0;
-						if (x265_encoder_encode(encoder, &nals, &i_nals, pic_in, pic_out) > 0) {
-						
-							gettimeofday(&curTime, NULL);												
-							timeval endodeTime;
-							timersub(&curTime,&refTime,&endodeTime);
-							refTime = curTime;
-							
-							if (i_nals > 1) {
-								int size = 0;
-								for (unsigned int i=0; i < i_nals; ++i) {
-									size+=nals[i].sizeBytes;
-								}
-								char buffer[size];
-								char* ptr = buffer;
-								for (unsigned int i=0; i < i_nals; ++i) {
-									memcpy(ptr, nals[i].payload, nals[i].sizeBytes);									
-									ptr+=nals[i].sizeBytes;
-								}
-								
-								int wsize = videoOutput->write(buffer,size);
-								LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
-								
-							} else if (i_nals == 1) {
-								int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
-								LOG(INFO) << "Copied size:" << wsize; 					
-							}
-							
-							gettimeofday(&curTime, NULL);												
-							timeval writeTime;
-							timersub(&curTime,&refTime,&writeTime);
-							refTime = curTime;
 
-							LOG(DEBUG) << "dts:" << pic_out->dts << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
-									<< " convertTime:" << (convertTime.tv_sec*1000+convertTime.tv_usec/1000)					
-									<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000)
-									<< " writeTime:" << (writeTime.tv_sec*1000+writeTime.tv_usec/1000); 					
-						} else {
-							LOG(NOTICE) << "encoder error"; 
-						}
-						
+						LOG(DEBUG) << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
+								<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000); 							
 					}
 					else if (ret == -1)
 					{
 						LOG(NOTICE) << "stop error:" << strerror(errno); 
-						stop=1;
+						stop=true;
 					}
 				}
 				
-				x265_picture_free(pic_in);
-				x265_picture_free(pic_out);
-				x265_encoder_close(encoder);
+				delete encoder;
 			}
 			delete videoOutput;			
 		}

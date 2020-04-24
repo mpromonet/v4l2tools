@@ -19,16 +19,13 @@
 
 #include <fstream>
 
-#include "vpx/vpx_encoder.h"
-#include "vpx/vp8cx.h"
-
-#include "libyuv.h"
-
 #include "logger.h"
 
 #include "V4l2Device.h"
 #include "V4l2Capture.h"
 #include "V4l2Output.h"
+
+#include "vpxencoder.h"
 
 
 int stop=0;
@@ -57,19 +54,6 @@ int decodeFormat(const char* fmt)
 }
 
 
-/* ---------------------------------------------------------------------------
-**  get VPx algo corresponding to V4L2 format
-** -------------------------------------------------------------------------*/
-const vpx_codec_iface_t* getAlgo(int format)
-{
-	const vpx_codec_iface_t* algo = NULL;
-	switch (format)
-	{
-		case V4L2_PIX_FMT_VP8 : algo = vpx_codec_vp8_cx(); break;
-		case V4L2_PIX_FMT_VP9 : algo = vpx_codec_vp9_cx(); break;
-	}
-	return algo;
-}
 /* ---------------------------------------------------------------------------
 **  main
 ** -------------------------------------------------------------------------*/
@@ -143,7 +127,7 @@ int main(int argc, char* argv[])
 		// init V4L2 output interface
 		int width = videoCapture->getWidth();
 		int height = videoCapture->getHeight();		
-		V4L2DeviceParameters outparam(out_devname, format, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
+		V4L2DeviceParameters outparam(out_devname, format, width, height, 0, verbose);
 		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
 		if (videoOutput == NULL)
 		{	
@@ -151,81 +135,55 @@ int main(int argc, char* argv[])
 		}
 		else
 		{		
-			vpx_image_t          raw;
-			if(!vpx_img_alloc(&raw, VPX_IMG_FMT_I420, width, height, 1))
-			{
-				LOG(WARN) << "vpx_img_alloc"; 
-			}
-
-			const vpx_codec_iface_t* algo = getAlgo(format);
-			vpx_codec_enc_cfg_t  cfg;
-			if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
-			{
-				LOG(WARN) << "vpx_codec_enc_config_default"; 
-			}
-
-			cfg.g_w = width;
-			cfg.g_h = height;	
-			cfg.rc_end_usage = ratecontrolmode;
-			cfg.rc_target_bitrate = bitrate;
-			
-			vpx_codec_ctx_t      codec;
-			if(vpx_codec_enc_init(&codec, algo, &cfg, 0))    
-			{
-				LOG(WARN) << "vpx_codec_enc_init"; 
-			}
-	
 			LOG(NOTICE) << "Start Capturing from " << in_devname; 
-			timeval tv;
-			int flags=0;
-			int frame_cnt=0;
-			
-			signal(SIGINT,sighandler);
-			LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 
-			while (!stop) 
+	
+			VpxEncoder* encoder = new VpxEncoder(width, height, format, ratecontrolmode, bitrate, verbose);
+			if (!encoder)
 			{
-				tv.tv_sec=1;
-				tv.tv_usec=0;
-				int ret = videoCapture->isReadable(&tv);
-				if (ret == 1)
+				LOG(WARN) << "Cannot create VPX encoder for device:" << in_devname; 
+			}
+			else
+			{						
+				timeval tv;
+				timeval refTime;
+				timeval curTime;
+
+				LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 					
+				signal(SIGINT,sighandler);
+				while (!stop) 
 				{
-					char buffer[videoCapture->getBufferSize()];
-					int rsize = videoCapture->read(buffer, sizeof(buffer));
-					
-					ConvertToI420((const uint8*)buffer, rsize,
-						raw.planes[0], width,
-						raw.planes[1], width/2,
-						raw.planes[2], width/2,
-						0, 0,
-						width, height,
-						width, height,
-						libyuv::kRotate0, videoCapture->getFormat());
-													
-					if(vpx_codec_encode(&codec, &raw, frame_cnt++, 1, flags, VPX_DL_REALTIME))    
-					{					
-						LOG(WARN) << "vpx_codec_encode: " << vpx_codec_error(&codec) << "(" << vpx_codec_error_detail(&codec) << ")";
-					}
-					
-					vpx_codec_iter_t iter = NULL;
-					const vpx_codec_cx_pkt_t *pkt;
-					while( (pkt = vpx_codec_get_cx_data(&codec, &iter)) ) 
+					tv.tv_sec=1;
+					tv.tv_usec=0;
+					int ret = videoCapture->isReadable(&tv);
+					if (ret == 1)
 					{
-						if (pkt->kind==VPX_CODEC_CX_FRAME_PKT)
-						{
-							int wsize = videoOutput->write((char*)pkt->data.frame.buf, pkt->data.frame.sz);
-							LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
-						}
-						else
-						{
-							break;
-						}
+						gettimeofday(&refTime, NULL);	
+						char buffer[videoCapture->getBufferSize()];
+						int rsize = videoCapture->read(buffer, sizeof(buffer));
+						
+						gettimeofday(&curTime, NULL);												
+						timeval captureTime;
+						timersub(&curTime,&refTime,&captureTime);
+						refTime = curTime;
+						
+						encoder->convertEncodeWrite(buffer, rsize,videoCapture->getFormat(), videoOutput);
+
+						gettimeofday(&curTime, NULL);												
+						timeval endodeTime;
+						timersub(&curTime,&refTime,&endodeTime);
+						refTime = curTime;
+
+						LOG(DEBUG) << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
+								<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000); 							
+					}
+					else if (ret == -1)
+					{
+						LOG(NOTICE) << "stop error:" << strerror(errno); 
+						stop=true;
 					}
 				}
-				else if (ret == -1)
-				{
-					LOG(NOTICE) << "stop " << strerror(errno); 
-					stop=1;
-				}
+				
+				delete encoder;
 			}
 			delete videoOutput;
 		}
