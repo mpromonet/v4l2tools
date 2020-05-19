@@ -41,12 +41,12 @@ class VpxEncoder : public Encoder {
 			cfg.g_w = width;
 			cfg.g_h = height;	
 
-			std::map<std::string,std::string>::iterator cbr = opt.find("CBR");
+			std::map<std::string,std::string>::const_iterator cbr = opt.find("CBR");
 			if (cbr != opt.end()) {
                 cfg.rc_end_usage = VPX_CBR;
                 cfg.rc_target_bitrate = std::stoi(cbr->second);
             }            
-			std::map<std::string,std::string>::iterator vbr = opt.find("VBR");
+			std::map<std::string,std::string>::const_iterator vbr = opt.find("VBR");
 			if (cbr != opt.end()) {
                 cfg.rc_end_usage = VPX_VBR;
                 cfg.rc_target_bitrate = std::stoi(vbr->second);

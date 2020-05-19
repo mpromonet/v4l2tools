@@ -42,6 +42,20 @@ class X265Encoder : public Encoder {
 			param.keyframeMax = fps;						
 			param.bOpenGOP = 0;
 
+			std::map<std::string,std::string>::const_iterator rc_qcp = opt.find("RC_CQP");
+			if (rc_qcp != opt.end()) {
+				int rc_value = std::stoi(rc_qcp->second);
+				param.rc.rateControlMode = X265_RC_CQP;
+				param.rc.qp = rc_value;
+			}			
+			std::map<std::string,std::string>::const_iterator rc_crf = opt.find("RC_CRF");
+			if (rc_crf != opt.end()) {	
+				int rc_value = std::stoi(rc_crf->second);		
+				param.rc.rateControlMode = X265_RC_CRF;
+				param.rc.rfConstantMin = rc_value;
+				param.rc.rfConstantMax = rc_value;
+			}
+			
             m_pic_in = x265_picture_alloc();
             x265_picture_init(&param, m_pic_in);
             m_buff= new char[width*height*3/2];
