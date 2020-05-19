@@ -42,7 +42,7 @@ class X264Encoder : public Encoder {
 			param.i_bframe = 0;
 			param.b_repeat_headers = 1;
 			
-			auto rc_qcp = opt.find("RC_CQP");
+			std::map<std::string,std::string>::iterator rc_qcp = opt.find("RC_CQP");
 			if (rc_qcp != opt.end()) {
 				int rc_value = std::stoi(rc_qcp->second);
 				param.rc.i_rc_method = X264_RC_CQP;
@@ -50,7 +50,7 @@ class X264Encoder : public Encoder {
 				param.rc.i_qp_min = rc_value; 
 				param.rc.i_qp_max = rc_value;
 			}
-			auto rc_crf = opt.find("RC_CRF");
+			std::map<std::string,std::string>::iterator rc_crf = opt.find("RC_CRF");
 			if (rc_crf != opt.end()) {	
 				int rc_value = std::stoi(rc_crf->second);		
 				param.rc.i_rc_method = X264_RC_CRF;

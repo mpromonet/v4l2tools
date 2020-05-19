@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv v4l2dump
+ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv v4l2dump v4l2compress
 CFLAGS = -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = $(CROSS)gcc
@@ -51,14 +51,12 @@ endif
 # libx264
 ifneq ($(wildcard /usr/include/x264.h),)
 CFLAGS += -DHAVE_X264
-ALL_PROGS+=v4l2compress_h264
 LDFLAGS += -lx264
 endif
 
 # libx265
 ifneq ($(wildcard /usr/include/x265.h),)
 CFLAGS += -DHAVE_X265
-ALL_PROGS+=v4l2compress_x265
 LDFLAGS += -lx265
 endif
 
@@ -66,7 +64,6 @@ endif
 ifneq ($(wildcard /usr/include/vpx),)
 CFLAGS += -DHAVE_VPX
 LDFLAGS += -lvpx
-ALL_PROGS+=v4l2compress_vpx
 endif
 
 # libjpeg
@@ -109,16 +106,8 @@ v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv.a libv4l2wrapper.a
 v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
-# read V4L2 capture -> compress using libvpx -> write V4L2 output
-v4l2compress_vpx: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
-
-# read V4L2 capture -> compress using x264 -> write V4L2 output
-v4l2compress_h264: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
-
-# read V4L2 capture -> compress using x265 -> write V4L2 output
-v4l2compress_x265: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
+# read V4L2 capture -> compress using libvpx/libx264/libx265 -> write V4L2 output
+v4l2compress: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> compress using libjpeg -> write V4L2 output
