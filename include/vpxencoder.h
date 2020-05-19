@@ -14,12 +14,13 @@
 
 #include "vpx/vpx_encoder.h"
 #include "vpx/vp8cx.h"
+#include "encoder.h"
 
 class V4l2Output;
 
-class VpxEncoder {
+class VpxEncoder : public Encoder {
 	public:
-		VpxEncoder(int width, int height, int format, vpx_rc_mode ratecontrolmode, int bitrate, int verbose) 
+		VpxEncoder(int width, int height, int format, const std::map<std::string,std::string> & opt, int verbose) 
 			: m_width(width)
 			, m_height(height)
             , m_frame_cnt(0) {
@@ -39,9 +40,17 @@ class VpxEncoder {
 
 			cfg.g_w = width;
 			cfg.g_h = height;	
-			cfg.rc_end_usage = ratecontrolmode;
-			cfg.rc_target_bitrate = bitrate;
-			
+
+			auto cbr = opt.find("CBR");
+			if (cbr != opt.end()) {
+                cfg.rc_end_usage = VPX_CBR;
+                cfg.rc_target_bitrate = std::stoi(cbr->second);
+            }            
+			auto vbr = opt.find("VBR");
+			if (cbr != opt.end()) {
+                cfg.rc_end_usage = VPX_VBR;
+                cfg.rc_target_bitrate = std::stoi(vbr->second);
+            }   			
 			
 			if(vpx_codec_enc_init(&m_codec, algo, &cfg, 0))    
 			{

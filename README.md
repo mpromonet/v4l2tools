@@ -13,9 +13,9 @@ This is simple V4L2 tools based on libv4l2cpp
 Dependencies
 ------------
  - liblog4cpp5-dev (optional)
- - libvpx-dev      (for v4l2compress_vpx)
- - libx264-dev     (for v4l2compress_h264)
- - libx265-dev     (for v4l2compress_x265)
+ - libvpx-dev      (for v4l2compress)
+ - libx264-dev     (for v4l2compress)
+ - libx265-dev     (for v4l2compress)
  - libjpeg-dev     (for v4l2compress_jpeg & v4l2uncompress_jpeg)
  
 Tools
@@ -29,17 +29,9 @@ Tools
 
 >	read an YUV format from a V4L2 capture device, convert to an other YUV format and write to a V4L2 output device
 
- - v4l2compress_vpx  : 
+ - v4l2compress  : 
 
->	read YUV from a V4L2 capture device, compress in VP8/VP9 format using libvpx and write to a V4L2 output device
-
- - v4l2compress_h264 : 
-
->	read YUV from a V4L2 capture device, compress in H264 format using libx264 and write to a V4L2 output device
-
- - v4l2compress_x265 : 
-
->	read YUV from a V4L2 capture device, compress in HEVC format using libx265 and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC format using libvpx and write to a V4L2 output device
 
  - v4l2compress_jpeg : 
 

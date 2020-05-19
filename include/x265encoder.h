@@ -11,6 +11,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
+#include "encoder.h"
 
 class V4l2Output;
 extern "C" 
@@ -18,9 +19,9 @@ extern "C"
 	#include "x265.h"
 }
 
-class X265Encoder {
+class X265Encoder : public Encoder {
 	public:
-		X265Encoder(int width, int height, int fps, int rc_method, int rc_value, int verbose) 
+		X265Encoder(int width, int height, int fps, const std::map<std::string,std::string> & opt, int verbose) 
             : m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL)
             , m_width(width)
             , m_height(height) {

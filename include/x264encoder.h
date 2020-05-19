@@ -11,6 +11,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
+#include "encoder.h"
 
 class V4l2Output;
 extern "C" 
@@ -18,9 +19,9 @@ extern "C"
 	#include "x264.h"
 }
 
-class X264Encoder {
+class X264Encoder : public Encoder {
 	public:
-		X264Encoder(int width, int height, int fps, int rc_method, int rc_value, int verbose) 
+		X264Encoder(int width, int height, int fps, const std::map<std::string,std::string> & opt, int verbose) 
 			: m_encoder(NULL)
 			, m_width(width)
 			, m_height(height) {
@@ -41,16 +42,23 @@ class X264Encoder {
 			param.i_bframe = 0;
 			param.b_repeat_headers = 1;
 			
-			if (rc_method == X264_RC_CQP) {
-				param.rc.i_rc_method = rc_method;
+			auto rc_qcp = opt.find("RC_CQP");
+			if (rc_qcp != opt.end()) {
+				int rc_value = std::stoi(rc_qcp->second);
+				param.rc.i_rc_method = X264_RC_CQP;
 				param.rc.i_qp_constant = rc_value;
 				param.rc.i_qp_min = rc_value; 
 				param.rc.i_qp_max = rc_value;
-			} else if (rc_method == X264_RC_CRF) {
-				param.rc.i_rc_method = rc_method;
+			}
+			auto rc_crf = opt.find("RC_CRF");
+			if (rc_crf != opt.end()) {	
+				int rc_value = std::stoi(rc_crf->second);		
+				param.rc.i_rc_method = X264_RC_CRF;
 				param.rc.f_rf_constant = rc_value;
 				param.rc.f_rf_constant_max = rc_value;
 			}
+
+
 			LOG(WARN) << "rc_method:" << param.rc.i_rc_method; 
 			LOG(WARN) << "i_qp_constant:" << param.rc.i_qp_constant; 
 			LOG(WARN) << "f_rf_constant:" << param.rc.f_rf_constant; 
