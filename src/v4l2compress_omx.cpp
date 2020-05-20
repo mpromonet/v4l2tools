@@ -47,29 +47,6 @@ void sighandler(int)
        stop =1;
 }
 
-OMX_VIDEO_AVCPROFILETYPE decodeProfile(const char* profile)
-{
-	OMX_VIDEO_AVCPROFILETYPE profileType = OMX_VIDEO_AVCProfileMax;
-	if (strcmp(profile,"Baseline")==0) {
-		profileType = OMX_VIDEO_AVCProfileBaseline;
-	}
-	else if (strcmp(profile,"Main")==0) {
-		profileType = OMX_VIDEO_AVCProfileMain;
-	}
-	else if (strcmp(profile,"Extended")==0) {
-		profileType = OMX_VIDEO_AVCProfileExtended;
-	}
-	else if (strcmp(profile,"High")==0) {
-		profileType = OMX_VIDEO_AVCProfileHigh;
-	}
-	return profileType;
-}
-
-OMX_VIDEO_AVCLEVELTYPE decodeLevel(const char* level)
-{
-	return OMX_VIDEO_AVCLevel4;
-}
-
 /* ---------------------------------------------------------------------------
 **  main
 ** -------------------------------------------------------------------------*/
@@ -104,6 +81,10 @@ int main(int argc, char* argv[])
 				std::cout << "\t -vv           : very verbose " << std::endl;
 				std::cout << "\t -r            : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w            : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;
+
+				std::cout << "\t -p profile    : H264 profile (default "<< profile << ")" << std::endl;
+				std::cout << "\t -l level      : H264 level (default "<< level << ")" << std::endl;
+								
 				std::cout << "\t source_device : V4L2 capture device (default "<< in_devname << ")" << std::endl;
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
