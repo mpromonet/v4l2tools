@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "encoder.h"
+
 #ifdef HAVE_X264   
 #include "x264encoder.h"
 #endif
