@@ -9,6 +9,9 @@
 
 #pragma once
 
+#include <string>
+#include <map>
+
 #include "libyuv.h"
 #include "logger.h"
 #include "encoder.h"
