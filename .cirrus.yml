@@ -1,3 +1,11 @@
 linux_docker_builder:
-  script: docker build -t $CIRRUS_REPO_FULL_NAME:cirrus-linux . 
+  env:
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKERHUB_USER: ENCRYPTED[600c413356e94f5f5270c4906d72989d81dccbb8f94b2b8e1804d2b70269b860cdaf5044ff38d62555a80594102c9c7e]
+    DOCKERHUB_PASS: ENCRYPTED[4f7cac3ac4d6bb39f41d912781136daf4eea114aaa947a29186a883e2ae6d1ba34ccd406f7c19785adc0f88b74ef4ddf]
+  script: |
+    export TAG=${CIRRUS_TAG:-latest}
+    docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
+    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG} . 
+    docker push $CIRRUS_REPO_FULL_NAME:${TAG}
 

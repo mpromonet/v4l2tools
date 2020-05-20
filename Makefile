@@ -8,7 +8,7 @@ DESTDIR?=$(PREFIX)
 ARCH?=$(shell uname -m)
 $(info ARCH=$(ARCH))
 
-ifeq ($(ARCH),"arm64")
+ifeq ($(ARCH),"aarch64")
 CMAKE_CXX_FLAGS += -mfpu=neon
 endif
 

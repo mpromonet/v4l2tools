@@ -1,6 +1,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/0c2b3215b77a4a6f82d977986bca7842)](https://www.codacy.com/app/michelpromonet_2643/v4l2tools?utm_source=github.com&utm_medium=referral&utm_content=mpromonet/v4l2tools&utm_campaign=badger)
 [![Build status](https://travis-ci.org/mpromonet/v4l2tools.png)](https://travis-ci.org/mpromonet/v4l2tools)
 [![CircleCI](https://circleci.com/gh/mpromonet/v4l2tools.svg?style=shield)](https://circleci.com/gh/mpromonet/v4l2tools)
+[![CirusCI](https://api.cirrus-ci.com/github/mpromonet/v4l2tools.svg?branch=master)](https://cirrus-ci.com/github/mpromonet/v4l2tools)
 [![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2tools.svg)](https://build.snapcraft.io/user/mpromonet/v4l2tools)
 [![GithubCI](https://github.com/mpromonet/v4l2tools/workflows/C/C++%20CI/badge.svg)](https://github.com/mpromonet/v4l2tools/actions)
 
