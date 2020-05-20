@@ -5,6 +5,11 @@ CC = $(CROSS)gcc
 CXX = $(CROSS)g++
 PREFIX?=/usr
 DESTDIR?=$(PREFIX)
+ARCH?=$(shell uname -m)
+
+ifeq ($(ARCH),"arm64")
+CMAKE_CXX_FLAGS += -mfpu=neon
+endif
 
 # log4cpp
 ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/log4cpp/Category.hh),)
@@ -83,7 +88,7 @@ all: $(ALL_PROGS)
 libyuv.a:
 	git submodule init libyuv
 	git submodule update libyuv
-	cd libyuv && cmake . && make 
+	cd libyuv && cmake -DCMAKE_CXX_FLAGS=$(CMAKE_CXX_FLAGS) . && make VERBOSE=1
 	mv libyuv/libyuv.a .
 	make -C libyuv clean
 
