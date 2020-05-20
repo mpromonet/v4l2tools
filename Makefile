@@ -9,7 +9,8 @@ ARCH?=$(shell uname -m)
 $(info ARCH=$(ARCH))
 
 ifeq ("$(ARCH)","aarch64")
-CMAKE_CXX_FLAGS += -mfpu=neon
+CMAKE_CXX_FLAGS += -DLIBYUV_DISABLE_NEON
+CFLAGS += -DLIBYUV_DISABLE_NEON
 endif
 
 # log4cpp
