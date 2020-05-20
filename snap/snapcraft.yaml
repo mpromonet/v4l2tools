@@ -48,7 +48,7 @@
       - x264
       - x265
       - libjpeg8
-      - libvpx3
+      - libvpx5
 
   apps:
     v4l2copy:
