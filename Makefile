@@ -6,6 +6,7 @@ CXX = $(CROSS)g++
 PREFIX?=/usr
 DESTDIR?=$(PREFIX)
 ARCH?=$(shell uname -m)
+$(info ARCH=$(ARCH))
 
 ifeq ($(ARCH),"arm64")
 CMAKE_CXX_FLAGS += -mfpu=neon
@@ -73,7 +74,7 @@ endif
 
 # libjpeg
 ifneq ($(wildcard /usr/include/jpeglib.h),)
-ALL_PROGS+=v4l2compress_jpeg v4l2uncompress_jpeg
+ALL_PROGS+=v4l2uncompress_jpeg
 CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
@@ -114,10 +115,6 @@ v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a
 # read V4L2 capture -> compress using libvpx/libx264/libx265 -> write V4L2 output
 v4l2compress: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
-
-# read V4L2 capture -> compress using libjpeg -> write V4L2 output
-v4l2compress_jpeg: src/v4l2compress_jpeg.cpp libyuv.a  libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -ljpeg -I libyuv/include
 
 # read V4L2 capture -> uncompress using libjpeg -> write V4L2 output
 v4l2uncompress_jpeg: src/v4l2uncompress_jpeg.cpp libyuv.a  libv4l2wrapper.a

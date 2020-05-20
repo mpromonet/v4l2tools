@@ -16,7 +16,7 @@ Dependencies
  - libvpx-dev      (for v4l2compress)
  - libx264-dev     (for v4l2compress)
  - libx265-dev     (for v4l2compress)
- - libjpeg-dev     (for v4l2compress_jpeg & v4l2uncompress_jpeg)
+ - libjpeg-dev     (for v4l2compress & v4l2uncompress_jpeg)
  
 Tools
 -------
@@ -31,11 +31,7 @@ Tools
 
  - v4l2compress  : 
 
->	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC format using libvpx and write to a V4L2 output device
-
- - v4l2compress_jpeg : 
-
->	read YUYV from a V4L2 capture device, compress in JPEG format using libjpeg and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC/JPEG format and write to a V4L2 output device
 
  - v4l2uncompress_jpeg : 
 

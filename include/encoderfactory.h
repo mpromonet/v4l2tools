@@ -20,6 +20,9 @@
 #ifdef HAVE_VPX   
 #include "vpxencoder.h"
 #endif
+#ifdef HAVE_JPEG  
+#include "jpegencoder.h"
+#endif
 
 class EncoderFactory {
     public:
@@ -35,6 +38,9 @@ class EncoderFactory {
 #ifdef HAVE_VPX            
             case V4L2_PIX_FMT_VP8: encoder = new VpxEncoder(format, width, height, opt, verbose); break;
             case V4L2_PIX_FMT_VP9: encoder = new VpxEncoder(format, width, height, opt, verbose); break;
+#endif            
+#ifdef HAVE_JPEG            
+            case V4L2_PIX_FMT_JPEG: encoder = new JpegEncoder(format, width, height, opt, verbose); break;
 #endif            
         }
         return encoder;

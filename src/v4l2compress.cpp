@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 	std::string strformat = "VP80";
 	opt["GOP"] = "25";
 	
-	while ((c = getopt (argc, argv, "hv::rw" "f:" "C:V:Q:F:G:")) != -1)
+	while ((c = getopt (argc, argv, "hv::rw" "f:" "C:V:Q:F:G:q:d:")) != -1)
 	{
 		switch (c)
 		{
@@ -78,11 +78,16 @@ int main(int argc, char* argv[])
 			
 			case 'f':	strformat      = optarg; break;
 
+			// parameters for VPx/H26x
 			case 'G':	opt["GOP"] = optarg; break;
 			case 'C':	opt["CBR"] = optarg; break;	
 			case 'V':	opt["VBR"] = optarg; break;	
 			case 'Q':	opt["RC_CQP"] = optarg; break;	
 			case 'F':	opt["RC_CRF"] = optarg; break;				
+
+			// parameters for JPEG
+			case 'q':	opt["QUALITY"] = optarg; break;
+			case 'd':	opt["DRI"] = optarg; break;	
 			
 			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
 			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	

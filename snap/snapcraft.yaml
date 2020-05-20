@@ -56,9 +56,6 @@
     v4l2compress:
       command: bin/v4l2compress 
 
-    v4l2compress-jpeg:
-      command: bin/v4l2compress_jpeg 
-
     v4l2uncompress-jpeg:
       command: bin/v4l2uncompress_jpeg 
       
