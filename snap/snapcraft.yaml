@@ -25,6 +25,7 @@
 
   grade: stable 
   confinement: strict
+  base: core18
 
   parts:
     v4l2tools:
