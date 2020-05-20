@@ -12,7 +12,7 @@ WORKDIR /usr/local/share/v4l2tools
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates x264 x265 libjpeg8 libvpx3 \
+    && apt-get install -y --no-install-recommends ca-certificates x264 x265 libjpeg8 libvpx5 \
     && apt-get clean && rm -rf /var/lib/apt/lists/
 
 ENTRYPOINT [ "/usr/local/bin/v4l2compress" ]
