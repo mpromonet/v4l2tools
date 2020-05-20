@@ -23,7 +23,7 @@ class V4l2Output;
 
 class VpxEncoder : public Encoder {
 	public:
-		VpxEncoder(int width, int height, int format, const std::map<std::string,std::string> & opt, int verbose) 
+		VpxEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
 			: m_width(width)
 			, m_height(height)
             , m_frame_cnt(0) {
@@ -43,6 +43,13 @@ class VpxEncoder : public Encoder {
 
 			cfg.g_w = width;
 			cfg.g_h = height;	
+
+			std::map<std::string,std::string>::const_iterator keyint = opt.find("GOP");
+			if (keyint != opt.end()) {
+				int value = std::stoi(keyint->second);	
+				cfg.kf_min_dist = value;
+				cfg.kf_max_dist = value;						
+			}
 
 			std::map<std::string,std::string>::const_iterator cbr = opt.find("CBR");
 			if (cbr != opt.end()) {

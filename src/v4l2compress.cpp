@@ -68,14 +68,17 @@ int main(int argc, char* argv[])
 	std::map<std::string,std::string> opt;
 	opt["VBR"] = "1000";
 	std::string strformat = "VP80";
+	opt["GOP"] = "25";
 	
-	while ((c = getopt (argc, argv, "hv::rw" "f:C:V:Q:F:")) != -1)
+	while ((c = getopt (argc, argv, "hv::rw" "f:" "C:V:Q:F:G:")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
 			
 			case 'f':	strformat      = optarg; break;
+
+			case 'G':	opt["GOP"] = optarg; break;
 			case 'C':	opt["CBR"] = optarg; break;	
 			case 'V':	opt["VBR"] = optarg; break;	
 			case 'Q':	opt["RC_CQP"] = optarg; break;	
@@ -140,7 +143,7 @@ int main(int argc, char* argv[])
 		{		
 			LOG(NOTICE) << "Start Capturing from " << in_devname; 
 	
-			Encoder* encoder = EncoderFactory::Create(outformat, width, height, 0, opt, verbose);
+			Encoder* encoder = EncoderFactory::Create(outformat, width, height, opt, verbose);
 			if (!encoder)
 			{
 				LOG(WARN) << "Cannot create encoder " << strformat << " for device:" << in_devname; 

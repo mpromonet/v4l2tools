@@ -1,0 +1,3 @@
+linux_docker_builder:
+  script: docker build -t $CIRRUS_REPO_FULL_NAME:cirrus-linux . 
+

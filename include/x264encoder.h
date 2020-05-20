@@ -24,7 +24,7 @@ extern "C"
 
 class X264Encoder : public Encoder {
 	public:
-		X264Encoder(int width, int height, int fps, const std::map<std::string,std::string> & opt, int verbose) 
+		X264Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
 			: m_encoder(NULL)
 			, m_width(width)
 			, m_height(height) {
@@ -38,13 +38,16 @@ class X264Encoder : public Encoder {
 			param.i_threads = 1;
 			param.i_width = width;
 			param.i_height = height;
-			param.i_fps_num = fps;
-			param.i_fps_den = 1;
-			param.i_keyint_min = fps;
-			param.i_keyint_max = fps;
 			param.i_bframe = 0;
 			param.b_repeat_headers = 1;
-			
+
+			std::map<std::string,std::string>::const_iterator keyint = opt.find("GOP");
+			if (keyint != opt.end()) {
+				int value = std::stoi(keyint->second);	
+				param.i_keyint_min = value;
+				param.i_keyint_max = value;						
+			}
+
 			std::map<std::string,std::string>::const_iterator rc_qcp = opt.find("RC_CQP");
 			if (rc_qcp != opt.end()) {
 				int rc_value = std::stoi(rc_qcp->second);

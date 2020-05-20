@@ -24,7 +24,7 @@ extern "C"
 
 class X265Encoder : public Encoder {
 	public:
-		X265Encoder(int width, int height, int fps, const std::map<std::string,std::string> & opt, int verbose) 
+		X265Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
             : m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL)
             , m_width(width)
             , m_height(height) {
@@ -37,13 +37,16 @@ class X265Encoder : public Encoder {
 			}
 			param.sourceWidth = width;
 			param.sourceHeight = height;
-			param.fpsNum = fps;
-			param.fpsDenom = 1;
 			param.bframes = 0;
-			param.bRepeatHeaders = 1;
-			param.keyframeMin = fps;
-			param.keyframeMax = fps;						
+			param.bRepeatHeaders = 1;						
 			param.bOpenGOP = 0;
+
+			std::map<std::string,std::string>::const_iterator keyint = opt.find("GOP");
+			if (keyint != opt.end()) {
+				int value = std::stoi(keyint->second);	
+				param.keyframeMin = value;
+				param.keyframeMax = value;						
+			}			
 
 			std::map<std::string,std::string>::const_iterator rc_qcp = opt.find("RC_CQP");
 			if (rc_qcp != opt.end()) {
