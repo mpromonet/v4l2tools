@@ -24,8 +24,6 @@
 
 #include "encoderfactory.h"
 
-extern std::string fourcc(unsigned int format);
-
 // -----------------------------------------
 //    capture, compress, output 
 // -----------------------------------------
@@ -63,7 +61,7 @@ int compress(const std::string& in_devname, V4l2Access::IoType ioTypeIn, const s
 			Encoder* encoder = EncoderFactory::Create(outformat, width, height, opt, verbose);
 			if (!encoder)
 			{
-				LOG(WARN) << "Cannot create encoder " << fourcc(outformat) << " for device:" << in_devname; 
+				LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat) << " for device:" << in_devname; 
 			}
 			else
 			{						
