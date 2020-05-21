@@ -83,8 +83,8 @@ class VpxEncoder : public Encoder {
 
                 libyuv::ConvertToI420((const uint8*)buffer, rsize,
                     m_input.planes[0], m_width,
-                    m_input.planes[1], m_width/2,
-                    m_input.planes[2], m_width/2,
+                    m_input.planes[1], (m_width+1)/2,
+                    m_input.planes[2], (m_width+1)/2,
                     0, 0,
                     m_width, m_height,
                     m_width, m_height,

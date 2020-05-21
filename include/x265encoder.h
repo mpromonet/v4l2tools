@@ -82,8 +82,8 @@ class X265Encoder : public Encoder {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 							(uint8*)m_pic_in->planes[0], m_width,
-							(uint8*)m_pic_in->planes[1], m_width/2,
-							(uint8*)m_pic_in->planes[2], m_width/2,
+							(uint8*)m_pic_in->planes[1], (m_width+1)/2,
+							(uint8*)m_pic_in->planes[2], (m_width+1)/2,
 							0, 0,
 							m_width, m_height,
 							m_width, m_height,

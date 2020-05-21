@@ -83,8 +83,8 @@ class X264Encoder : public Encoder {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 						m_pic_in.img.plane[0], m_width,
-						m_pic_in.img.plane[1], m_width/2,
-						m_pic_in.img.plane[2], m_width/2,
+						m_pic_in.img.plane[1], (m_width+1)/2,
+						m_pic_in.img.plane[2], (m_width+1)/2,
 						0, 0,
 						m_width, m_height,
 						m_width, m_height,
