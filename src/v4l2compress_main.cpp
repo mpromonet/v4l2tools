@@ -19,9 +19,12 @@
 #include <iostream>
 #include <map>
 
-#include "V4l2Access.h"
+#include "logger.h"
 
-extern int compress(const std::string& in_devname, V4l2Access::IoType ioTypeIn, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose);
+#include "V4l2Access.h"
+#include "V4l2Capture.h"
+
+extern int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose);
 
 /* ---------------------------------------------------------------------------
 **  end condition
@@ -35,20 +38,6 @@ void sighandler(int)
 { 
        printf("SIGINT\n");
        stop =1;
-}
-
-// -----------------------------------------
-//    convert string format to fourcc 
-// -----------------------------------------
-int decodeFormat(const char* fmt)
-{
-	char fourcc[4];
-	memset(&fourcc, 0, sizeof(fourcc));
-	if (fmt != NULL)
-	{
-		strncpy(fourcc, fmt, 4);	
-	}
-	return v4l2_fourcc(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
 }
 
 /* ---------------------------------------------------------------------------
@@ -117,9 +106,28 @@ int main(int argc, char* argv[])
 		optind++;
 	}
 
-	int outformat = decodeFormat(strformat.c_str());
+	int outformat = V4l2Device::fourcc(strformat.c_str());
 		
 	signal(SIGINT,sighandler);	
 
-	return compress(in_devname, ioTypeIn, out_devname, ioTypeOut, outformat, opt, stop, verbose);
+	// initialize log4cpp
+	initLogger(verbose);
+
+	// init V4L2 capture interface
+	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	
+	int ret = 0;
+	if (videoCapture == NULL)
+	{	
+		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << in_devname; 
+		ret = -1;
+	}
+	else
+	{
+		ret = compress(videoCapture, out_devname, ioTypeOut, outformat, opt, stop, verbose);
+		delete videoCapture;
+	}
+
+	return ret;
 }

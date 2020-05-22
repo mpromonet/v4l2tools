@@ -27,88 +27,70 @@
 // -----------------------------------------
 //    capture, compress, output 
 // -----------------------------------------
-int compress(const std::string& in_devname, V4l2Access::IoType ioTypeIn, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
+int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
 	int ret = 0;
 
-	// initialize log4cpp
-	initLogger(verbose);
-
-	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname.c_str(),0,0,0,0,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
-	
-	if (videoCapture == NULL)
+	// init V4L2 output interface
+	int width = videoCapture->getWidth();
+	int height = videoCapture->getHeight();		
+	V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, verbose);
+	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+	if (videoOutput == NULL)
 	{	
-		LOG(WARN) << "Cannot create V4L2 capture interface for device:" << in_devname; 
+		LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
 		ret = -1;
 	}
 	else
-	{
-		// init V4L2 output interface
-		int width = videoCapture->getWidth();
-		int height = videoCapture->getHeight();		
-		V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, verbose);
-		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
-		if (videoOutput == NULL)
-		{	
-			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
-			ret = -1;
+	{		
+		Encoder* encoder = EncoderFactory::Create(outformat, width, height, opt, verbose);
+		if (!encoder)
+		{
+			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat); 
 		}
 		else
-		{		
-			LOG(NOTICE) << "Start Capturing from " << in_devname; 
-	
-			Encoder* encoder = EncoderFactory::Create(outformat, width, height, opt, verbose);
-			if (!encoder)
+		{						
+			timeval tv;
+			timeval refTime;
+			timeval curTime;
+
+			LOG(NOTICE) << "Start Compressing to " << out_devname;  					
+			
+			while (!stop) 
 			{
-				LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat) << " for device:" << in_devname; 
-			}
-			else
-			{						
-				timeval tv;
-				timeval refTime;
-				timeval curTime;
-
-				LOG(NOTICE) << "Start Compressing " << in_devname << " to " << out_devname; 					
-				
-				while (!stop) 
+				tv.tv_sec=1;
+				tv.tv_usec=0;
+				int ret = videoCapture->isReadable(&tv);
+				if (ret == 1)
 				{
-					tv.tv_sec=1;
-					tv.tv_usec=0;
-					int ret = videoCapture->isReadable(&tv);
-					if (ret == 1)
-					{
-						gettimeofday(&refTime, NULL);	
-						char buffer[videoCapture->getBufferSize()];
-						int rsize = videoCapture->read(buffer, sizeof(buffer));
-						
-						gettimeofday(&curTime, NULL);												
-						timeval captureTime;
-						timersub(&curTime,&refTime,&captureTime);
-						refTime = curTime;
-						
-						encoder->convertEncodeWrite(buffer, rsize,videoCapture->getFormat(), videoOutput);
+					gettimeofday(&refTime, NULL);	
+					char buffer[videoCapture->getBufferSize()];
+					int rsize = videoCapture->read(buffer, sizeof(buffer));
+					
+					gettimeofday(&curTime, NULL);												
+					timeval captureTime;
+					timersub(&curTime,&refTime,&captureTime);
+					refTime = curTime;
+					
+					encoder->convertEncodeWrite(buffer, rsize,videoCapture->getFormat(), videoOutput);
 
-						gettimeofday(&curTime, NULL);												
-						timeval endodeTime;
-						timersub(&curTime,&refTime,&endodeTime);
-						refTime = curTime;
+					gettimeofday(&curTime, NULL);												
+					timeval endodeTime;
+					timersub(&curTime,&refTime,&endodeTime);
+					refTime = curTime;
 
-						LOG(DEBUG) << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
-								<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000); 							
-					}
-					else if (ret == -1)
-					{
-						LOG(NOTICE) << "stop error:" << strerror(errno); 
-						stop=true;
-					}
+					LOG(DEBUG) << " captureTime:" << (captureTime.tv_sec*1000+captureTime.tv_usec/1000) 
+							<< " endodeTime:" << (endodeTime.tv_sec*1000+endodeTime.tv_usec/1000); 							
 				}
-				
-				delete encoder;
+				else if (ret == -1)
+				{
+					LOG(NOTICE) << "stop error:" << strerror(errno); 
+					stop=true;
+				}
 			}
-			delete videoOutput;
+			
+			delete encoder;
 		}
-		delete videoCapture;
+		delete videoOutput;
 	}
 
 	return ret;
