@@ -107,11 +107,11 @@ class X264Encoder : public Encoder {
 						}
 						
 						int wsize = videoOutput->write(buffer,size);
-						LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
+						LOG(DEBUG) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
 						
 					} else if (i_nals == 1) {
 						int wsize = videoOutput->write((char*)nals[0].p_payload, nals[0].i_payload);
-						LOG(INFO) << "Copied size:" << wsize; 					
+						LOG(DEBUG) << "Copied size:" << wsize; 					
 					}				
 		}			
 						

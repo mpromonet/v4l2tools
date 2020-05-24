@@ -80,7 +80,7 @@ class JpegEncoder : public Encoder {
 				jpeg_finish_compress(&m_cinfo);
 						
                 int wsize = videoOutput->write((char *)dest,destsize);
-                LOG(INFO) << "Copied size:" << wsize;
+                LOG(DEBUG) << "Copied size:" << wsize;
 
 				free(dest);										
 		}			

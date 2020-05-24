@@ -105,11 +105,11 @@ class X265Encoder : public Encoder {
                             }
                             
                             int wsize = videoOutput->write(buffer,size);
-                            LOG(INFO) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
+                            LOG(DEBUG) << "Copied nbnal:" << i_nals << " size:" << wsize; 					
                             
                         } else if (i_nals == 1) {
                             int wsize = videoOutput->write((char*)nals[0].payload, nals[0].sizeBytes);
-                            LOG(INFO) << "Copied size:" << wsize; 					
+                            LOG(DEBUG) << "Copied size:" << wsize; 					
                         }				
                     } else {
                         LOG(NOTICE) << "encoder error"; 
