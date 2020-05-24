@@ -22,6 +22,8 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <opencv/ml.h>
+#include <opencv2/objdetect.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "logger.h"
 
@@ -98,7 +100,8 @@ int main(int argc, char* argv[])
 	
 
 	const char *cascade_name = "/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml";
-	CvHaarClassifierCascade *cascade = (CvHaarClassifierCascade *) cvLoad (cascade_name, 0, 0, 0);
+	cv::CascadeClassifier cascade;
+	cascade.load(cascade_name);
   
     
 	// initialize log4cpp
@@ -180,28 +183,20 @@ int main(int argc, char* argv[])
 									outformat);
 							
 							
-							CvMemStorage *storage = cvCreateMemStorage (0);
-							cvClearMemStorage (storage);
-							
-							IplImage *src_img = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,3);
-							src_img->imageData = outBuffer;
-							
-							IplImage *src_gray = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
-							cvCvtColor (src_img, src_gray, CV_BGR2GRAY);							
-							cvEqualizeHist (src_gray, src_gray);
 
-							CvSeq* faces = cvHaarDetectObjects (src_gray, cascade, storage, 1.11, 4, 0, cvSize (40, 40));
-							LOG(NOTICE) << "faces " << (faces ? faces->total : 0 ); 
-							for (int i = 0; i < (faces ? faces->total : 0); i++) 
+							cv::Mat input(width, height, CV_8UC3, outBuffer);
+                                                        std::vector<cv::Rect> faces;
+                                                        cascade.detectMultiScale( input, faces, 1.11, 4, 0);
+							LOG(NOTICE) << "faces " << faces.size(); 
+							for (cv::Rect r : faces) 
 							{
-								CvRect *r = (CvRect *) cvGetSeqElem (faces, i);
-								LOG(NOTICE) << r->x << "x" << r->y << " -> " << r->x+r->width << "x" << r->y+r->height ;
+								LOG(NOTICE) << r.x << "x" << r.y << " -> " << r.x+r.width << "x" << r.y+r.height ;
+								cv::rectangle( input, r, cv::Scalar(255,0,0) );
 							}
 							
-							int wsize = videoOutput->write(src_gray->imageData, src_gray->imageSize);
+							int wsize = videoOutput->write((char*)input.data, width*height*3);
 							LOG(DEBUG) << "Copied " << rsize << " " << wsize; 
 							
-							cvReleaseImage(&src_gray);							
 						}
 					}
 					else if (ret == -1)
