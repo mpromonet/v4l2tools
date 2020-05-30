@@ -40,12 +40,15 @@ class X265Encoder : public Encoder {
 			param.bframes = 0;
 			param.bRepeatHeaders = 1;						
 			param.bOpenGOP = 0;
+			param.fpsNum = 1;
+			param.fpsDenom = 1;
 
 			std::map<std::string,std::string>::const_iterator keyint = opt.find("GOP");
 			if (keyint != opt.end()) {
 				int value = std::stoi(keyint->second);	
 				param.keyframeMin = value;
 				param.keyframeMax = value;						
+				param.fpsDenom = value;
 			}			
 
 			std::map<std::string,std::string>::const_iterator rc_qcp = opt.find("RC_CQP");

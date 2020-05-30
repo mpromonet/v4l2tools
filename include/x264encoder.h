@@ -65,9 +65,9 @@ class X264Encoder : public Encoder {
 			}
 
 
-			LOG(WARN) << "rc_method:" << param.rc.i_rc_method; 
-			LOG(WARN) << "i_qp_constant:" << param.rc.i_qp_constant; 
-			LOG(WARN) << "f_rf_constant:" << param.rc.f_rf_constant; 
+			LOG(NOTICE) << "rc_method:" << param.rc.i_rc_method; 
+			LOG(NOTICE) << "i_qp_constant:" << param.rc.i_qp_constant; 
+			LOG(NOTICE) << "f_rf_constant:" << param.rc.f_rf_constant; 
 			
 			x264_picture_init( &m_pic_in );
 			x264_picture_alloc(&m_pic_in, X264_CSP_I420, width, height);

@@ -46,6 +46,24 @@ class EncoderFactory {
         return encoder;
     }
 
+    static std::list<int> SupportedFormat() {
+        std::list<int> formatList;
+#ifdef HAVE_X265         
+        formatList.push_back(V4L2_PIX_FMT_HEVC);
+#endif            
+#ifdef HAVE_X264           
+        formatList.push_back(V4L2_PIX_FMT_H264);
+#endif            
+#ifdef HAVE_VPX        
+        formatList.push_back(V4L2_PIX_FMT_VP8);    
+        formatList.push_back(V4L2_PIX_FMT_VP9);  
+#endif            
+#ifdef HAVE_JPEG 
+        formatList.push_back(V4L2_PIX_FMT_JPEG);            
+#endif              
+        return formatList;      
+    }
+
     EncoderFactory & get() {
         static EncoderFactory instance;
         return instance;
