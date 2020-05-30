@@ -88,15 +88,13 @@ endif
 all: $(ALL_PROGS)
 
 libyuv.a:
-	git submodule init libyuv
-	git submodule update libyuv
+	git submodule update --init libyuv
 	cd libyuv && cmake -DCMAKE_CXX_FLAGS=$(CMAKE_CXX_FLAGS) . && make VERBOSE=1
 	mv libyuv/libyuv.a .
 	make -C libyuv clean
 
 libv4l2wrapper.a: 
-	git submodule init v4l2wrapper
-	git submodule update v4l2wrapper
+	git submodule update --init v4l2wrapper
 	make -C v4l2wrapper
 	mv v4l2wrapper/libv4l2wrapper.a .
 	make -C v4l2wrapper clean

@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 	int fps = 25;
 	
 	int c = 0;
-	while ((c = getopt (argc, argv, "hP:F:v::w" "WHF")) != -1)
+	while ((c = getopt (argc, argv, "hP:F:v::w" "W:H:F:")) != -1)
 	{
 		switch (c)
 		{
