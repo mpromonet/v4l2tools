@@ -5,6 +5,7 @@
 [![Snap Status](https://build.snapcraft.io/badge/mpromonet/v4l2tools.svg)](https://build.snapcraft.io/user/mpromonet/v4l2tools)
 [![GithubCI](https://github.com/mpromonet/v4l2tools/workflows/C/C++%20CI/badge.svg)](https://github.com/mpromonet/v4l2tools/actions)
 
+[![Docker Pulls](https://img.shields.io/docker/pulls/mpromonet/v4l2tools.svg)](https://hub.docker.com/r/mpromonet/v4l2tools/)
 
 v4l2tools
 ====================
@@ -71,3 +72,19 @@ Install
 
      make install
 
+Using Docker image
+===============
+
+You can expose V4L2 devices from your host using :
+
+        docker run --device=/dev/video0 --device=/dev/video1 -it mpromonet/v4l2tools
+
+The container entry point is the v4l2tools application, then you can :
+
+* get the help using :
+
+        docker run -it mpromonet/v4l2tools -h
+
+* run the container specifying some paramaters :
+
+        docker run --device=/dev/video0 --device=/dev/video1 -it mpromonet/v4l2tools -fH264
