@@ -91,8 +91,8 @@ int main(int argc, char* argv[])
 	int width = 640;
 	int height = 480;	
 	int fps = 25;	
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	
 	int c = 0;
 	while ((c = getopt (argc, argv, "h" "W:H:F:" "rw" )) != -1)
@@ -105,10 +105,10 @@ int main(int argc, char* argv[])
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
 			case 'F':	fps = atoi(optarg); break;
-			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'r':	ioTypeIn  = IOTYPE_READWRITE; break;			
 			
 			// output options
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;	
 			
 			case 'h':
 			{
@@ -145,8 +145,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_JPEG,width,height,fps,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname,V4L2_PIX_FMT_JPEG,width,height,fps,ioTypeIn,verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
 	{	
@@ -155,8 +155,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, videoCapture->getWidth(), videoCapture->getHeight(), 0, verbose);
-		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, videoCapture->getWidth(), videoCapture->getHeight(), 0, ioTypeOut, verbose);
+		V4l2Output* videoOutput = V4l2Output::create(outparam);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

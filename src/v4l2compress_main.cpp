@@ -24,7 +24,7 @@
 #include "V4l2Access.h"
 #include "V4l2Capture.h"
 
-extern int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose);
+extern int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose);
 
 /* ---------------------------------------------------------------------------
 **  end condition
@@ -49,8 +49,8 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	std::map<std::string,std::string> opt;
 	opt["VBR"] = "1000";
 	std::string strformat = "VP80";
@@ -75,8 +75,8 @@ int main(int argc, char* argv[])
 			case 'q':	opt["QUALITY"] = optarg; break;
 			case 'd':	opt["DRI"] = optarg; break;	
 			
-			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+			case 'r':	ioTypeIn  = IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;	
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,ioTypeIn,verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	int ret = 0;
 	if (videoCapture == NULL)

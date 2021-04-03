@@ -27,14 +27,14 @@
 // -----------------------------------------
 //    capture, compress, output 
 // -----------------------------------------
-int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2Access::IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
+int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
 	int ret = 0;
 
 	// init V4L2 output interface
 	int width = videoCapture->getWidth();
 	int height = videoCapture->getHeight();		
-	V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, verbose);
-	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+	V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, ioTypeOut, verbose);
+	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

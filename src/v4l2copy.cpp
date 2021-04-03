@@ -45,16 +45,16 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	
 	while ((c = getopt (argc, argv, "hP:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose   = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'r':	ioTypeIn  = IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -83,8 +83,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0, ioTypeIn, verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
 	{	
@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
 	else
 	{
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+		V4L2DeviceParameters outparam(out_devname, videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0, ioTypeOut, verbose);
+		V4l2Output* videoOutput = V4l2Output::create(outparam);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

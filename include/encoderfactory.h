@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "encoder.h"
 
 #ifdef HAVE_X264   

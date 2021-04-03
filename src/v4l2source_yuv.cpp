@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 {	
 	int verbose=0;
 	const char *out_devname = "/dev/video0";	
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
     	int width = 640;
     	int height = 480;
 	int fps = 25;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 		switch (c)
 		{
 			case 'v':	verbose   = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;	
 			
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;
@@ -102,8 +102,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 output interface
-	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, width, height, fps,verbose);
-	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, width, height, fps, ioTypeOut, verbose);
+	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

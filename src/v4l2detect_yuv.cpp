@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int c = 0;
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	std::string outFormatStr = "YU12";
 	
 	while ((c = getopt (argc, argv, "hv::" "o:" "rw")) != -1)
@@ -74,8 +74,8 @@ int main(int argc, char* argv[])
 				std::cout << "\t dest_device   : V4L2 capture device (default "<< out_devname << ")" << std::endl;
 				exit(0);
 			}
-			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
+			case 'r':	ioTypeIn  = IOTYPE_READWRITE; break;			
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;	
 			case 'o':       outFormatStr = optarg ; break;
 			default:
 				std::cout << "option :" << c << " is unknown" << std::endl;
@@ -108,8 +108,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname, v4l2_fourcc('Y', 'U', 'Y', 'V'), 640, 480, 0,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname, v4l2_fourcc('Y', 'U', 'Y', 'V'), 640, 480, 0, ioTypeIn, verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
 	{	
@@ -123,8 +123,8 @@ int main(int argc, char* argv[])
 				
 		// init V4L2 output interface
 		int outformat =  v4l2_fourcc('B', 'G', 'R', '3'); //v4l2_fourcc(outFormatStr[0],outFormatStr[1],outFormatStr[2],outFormatStr[3]);
-		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0,verbose);
-		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+		V4L2DeviceParameters outparam(out_devname, outformat, videoCapture->getWidth(), videoCapture->getHeight(), 0, ioTypeOut, verbose);
+		V4l2Output* videoOutput = V4l2Output::create(outparam);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

@@ -48,14 +48,14 @@ int main(int argc, char* argv[])
 	int verbose=0;
 	const char *in_devname = "/dev/video0";	
 	int c = 0;
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
 	
 	while ((c = getopt (argc, argv, "hP:F:v::rw")) != -1)
 	{
 		switch (c)
 		{
 			case 'v':	verbose   = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':	ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
+			case 'r':	ioTypeIn  = IOTYPE_READWRITE; break;			
 			case 'h':
 			{
 				std::cout << argv[0] << " [-v[v]] [-W width] [-H height] source_device dest_device" << std::endl;
@@ -77,8 +77,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0,verbose);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0, ioTypeIn, verbose);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
 	{	

@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 	const char *in_devname = "/dev/video0";	
 	const char *out_devname = "/dev/video1";	
 	int bandwidth = 10000000;
-	V4l2Access::IoType ioTypeIn  = V4l2Access::IOTYPE_MMAP;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeIn  = IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	int openflags = O_RDWR | O_NONBLOCK;
 	OMX_VIDEO_AVCPROFILETYPE profile = OMX_VIDEO_AVCProfileHigh;
 	OMX_VIDEO_AVCLEVELTYPE level = OMX_VIDEO_AVCLevel4;
@@ -68,9 +68,9 @@ int main(int argc, char* argv[])
 		switch (c)
 		{
 			case 'v':   verbose = 1; if (optarg && *optarg=='v') verbose++;  break;
-			case 'r':   ioTypeIn  = V4l2Access::IOTYPE_READWRITE; break;			
-			case 'w':   ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;	
-                        case 'B':   openflags = O_RDWR; break;			
+			case 'r':   ioTypeIn  = IOTYPE_READWRITE; break;			
+			case 'w':   ioTypeOut = IOTYPE_READWRITE; break;	
+			case 'B':   openflags = O_RDWR; break;			
 			case 'b':   bandwidth = atoi(optarg); break;	
 			case 'p':   profile = decodeProfile(optarg); break;	
 			case 'l':   level = decodeLevel(optarg); break;	
@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,0,0,0,0,verbose, openflags);
-	V4l2Capture* videoCapture = V4l2Capture::create(param, ioTypeIn);
+	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0, ioTypeIn, verbose, openflags);
+	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
 	{	
@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
 		int height = videoCapture->getHeight();	
 		
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, width, height, 0, verbose, openflags);
-		V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, width, height, 0, ioTypeOut, verbose, openflags);
+		V4l2Output* videoOutput = V4l2Output::create(outparam);
 		if (videoOutput == NULL)
 		{	
 			LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 

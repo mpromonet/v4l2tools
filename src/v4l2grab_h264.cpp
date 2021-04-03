@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	int width = 0;
 	int height = 0;	
 	int bandwidth = 10000000;
-	V4l2Access::IoType ioTypeOut = V4l2Access::IOTYPE_MMAP;
+	V4l2IoType ioTypeOut = IOTYPE_MMAP;
 	int verbose = 0;
 	OMX_VIDEO_AVCPROFILETYPE profile = OMX_VIDEO_AVCProfileHigh;
 	OMX_VIDEO_AVCLEVELTYPE level = OMX_VIDEO_AVCLevel4;	
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 			case 'Y':	y = atoi(optarg); break;			
 			case 'W':	width = atoi(optarg); break;
 			case 'H':	height = atoi(optarg); break;			
-			case 'w':	ioTypeOut = V4l2Access::IOTYPE_READWRITE; break;
+			case 'w':	ioTypeOut = IOTYPE_READWRITE; break;
 
 			case 'p':   profile = decodeProfile(optarg); break;	
 			case 'l':   level = decodeLevel(optarg); break;		
@@ -142,8 +142,8 @@ int main(int argc, char **argv)
 	// initialize log4cpp
 	initLogger(verbose);
 	
-	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264,  width, height, 0, verbose);
-	V4l2Output* videoOutput = V4l2Output::create(outparam, ioTypeOut);
+	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264,  width, height, 0, ioTypeOut, verbose);
+	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
 		LOG(WARN) << "Cannot create V4L2 output interface for device:" << out_devname; 
