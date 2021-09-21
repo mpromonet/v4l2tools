@@ -20,8 +20,6 @@ template<typename T> class EncoderCreator {
                 static Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
                         return new T(format, width, height, opt, verbose);
                 }
-
-                static const bool registration;
 };
 
 class EncoderFactory {
