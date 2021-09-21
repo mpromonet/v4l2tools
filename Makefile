@@ -1,4 +1,4 @@
-ALL_PROGS = v4l2copy v4l2convert_yuv v4l2source_yuv v4l2dump v4l2compress
+ALL_PROGS = v4l2copy v4l2source_yuv v4l2dump v4l2compress
 CFLAGS = -std=c++11 -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = $(CROSS)gcc
