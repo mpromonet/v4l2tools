@@ -24,8 +24,8 @@ extern "C"
 
 class X265Encoder : public Encoder {
 	public:
-		X265Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-            : Encoder(width, height)
+		X265Encoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
+            : Encoder(informat, width, height)
 			, m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL) {
 
 			x265_param param;
@@ -80,7 +80,7 @@ class X265Encoder : public Encoder {
 			}
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, int format, V4l2Output* videoOutput) {
+		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 							(uint8*)m_pic_in->planes[0], m_width,
@@ -89,7 +89,7 @@ class X265Encoder : public Encoder {
 							0, 0,
 							m_width, m_height,
 							m_width, m_height,
-							libyuv::kRotate0, format);
+							libyuv::kRotate0, m_informat);
 
 					x265_nal* nals = NULL;
 					uint32_t i_nals = 0;

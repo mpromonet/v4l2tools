@@ -23,8 +23,8 @@ class V4l2Output;
 
 class VpxEncoder : public Encoder {
 	public:
-		VpxEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(width, height)
+		VpxEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
+			: Encoder(informat, width, height)
             , m_frame_cnt(0) {
 
 
@@ -33,7 +33,7 @@ class VpxEncoder : public Encoder {
 				LOG(WARN) << "vpx_img_alloc"; 
 			}
 
-			const vpx_codec_iface_t* algo = getAlgo(format);
+			const vpx_codec_iface_t* algo = getAlgo(outformat);
 			vpx_codec_enc_cfg_t  cfg;
 			if (vpx_codec_enc_config_default(algo, &cfg, 0) != VPX_CODEC_OK)
 			{
@@ -78,7 +78,7 @@ class VpxEncoder : public Encoder {
             return algo;
         }        
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, int format, V4l2Output* videoOutput) {
+		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
                 libyuv::ConvertToI420((const uint8*)buffer, rsize,
                     m_input.planes[0], m_width,
@@ -87,7 +87,7 @@ class VpxEncoder : public Encoder {
                     0, 0,
                     m_width, m_height,
                     m_width, m_height,
-                    libyuv::kRotate0, format);
+                    libyuv::kRotate0, m_informat);
 
                 int flags=0;          
                 if(vpx_codec_encode(&m_codec, &m_input, m_frame_cnt++ , 1, flags, VPX_DL_REALTIME))    

@@ -27,10 +27,6 @@ Tools
 
 >	read from a V4L2 capture device and write to a V4L2 output device
 
- - v4l2convert_YUV          : 
-
->	read an YUV format from a V4L2 capture device, convert to an other YUV format and write to a V4L2 output device
-
  - v4l2compress  : 
 
 >	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC/JPEG format and write to a V4L2 output device

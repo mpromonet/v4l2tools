@@ -50,6 +50,14 @@ ALL_PROGS+=v4l2display_h264
 ALL_PROGS+=v4l2compress_omx
 endif
 
+# cuda
+CUDADIR=/usr/local/cuda
+ifneq ($(wildcard $(CUDADIR)),)
+CFLAGS  +=-DHAVE_CUDA -I $(CUDADIR)/include/ -I $(PWD)/Video_Codec_SDK_11.1.5/Interface
+LDFLAGS += $(PWD)/Video_Codec_SDK_11.1.5/Lib/linux/stubs/x86_64/libnvidia-encode.so $(PWD)/Video_Codec_SDK_11.1.5/Lib/linux/stubs/x86_64/libnvcuvid.so /usr/local/cuda/targets/x86_64-linux/lib/stubs/libcuda.so
+endif
+
+
 # opencv
 ifneq ($(wildcard /usr/include/opencv),)
 ALL_PROGS+=v4l2detect_yuv
@@ -102,10 +110,6 @@ libv4l2wrapper.a:
 # read V4L2 capture -> write V4L2 output
 v4l2copy: src/v4l2copy.cpp  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
-
-# read V4L2 capture -> convert YUV format -> write V4L2 output
-v4l2convert_yuv: src/v4l2convert_yuv.cpp  libyuv.a libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # -> write V4L2 output
 v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a

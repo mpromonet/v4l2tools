@@ -24,8 +24,8 @@ extern "C"
 
 class X264Encoder : public Encoder {
 	public:
-		X264Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(width, height)
+		X264Encoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
+			: Encoder(informat, width, height)
 			, m_encoder(NULL) {
 
 			x264_param_t param;
@@ -78,7 +78,7 @@ class X264Encoder : public Encoder {
 			}			
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, int format, V4l2Output* videoOutput) {
+		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 						m_pic_in.img.plane[0], m_width,
@@ -87,7 +87,7 @@ class X264Encoder : public Encoder {
 						0, 0,
 						m_width, m_height,
 						m_width, m_height,
-						libyuv::kRotate0, format);
+						libyuv::kRotate0, m_informat);
 
 					x264_nal_t* nals = NULL;
 					int i_nals = 0;

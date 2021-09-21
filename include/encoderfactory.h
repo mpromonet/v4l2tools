@@ -13,22 +13,25 @@
 
 #include "encoder.h"
 
-typedef Encoder* (*encoderCreator)(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose);
+typedef Encoder* (*encoderCreator)(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose);
 
 template<typename T> class EncoderCreator {
         public:
-                static Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
-                        return new T(format, width, height, opt, verbose);
+                static Encoder* Create(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
+                        return new T(outformat, informat, width, height, opt, verbose);
                 }
 };
 
 class EncoderFactory {
     public:
-        Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
+        Encoder* Create(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
                 Encoder* encoder = NULL;
-                auto it = m_registry.find(format);
+                auto it = m_registry.find(outformat);
+                if (it == std::end(m_registry)) {
+                        it = m_registry.find(0);
+                }
                 if (it != std::end(m_registry)) {
-                        encoder = it->second(format, width, height, opt, verbose);
+                        encoder = it->second(outformat, informat, width, height, opt, verbose);
                 }
                 return encoder;
         }

@@ -36,6 +36,7 @@
 #ifdef HAVE_JPEG  
 #include "jpegencoder.h"
 #endif
+#include "yuvconverter.h"
 
 // -----------------------------------------
 //    capture, compress, output 
@@ -55,7 +56,8 @@ int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTy
 	}
 	else
 	{		
-		Encoder* encoder = EncoderFactory::get().Create(outformat, width, height, opt, verbose);
+		int informat = videoCapture->getFormat();
+		Encoder* encoder = EncoderFactory::get().Create(outformat, informat, width, height, opt, verbose);
 		if (!encoder)
 		{
 			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat); 
@@ -84,7 +86,7 @@ int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTy
 					timersub(&curTime,&refTime,&captureTime);
 					refTime = curTime;
 					
-					encoder->convertEncodeWrite(buffer, rsize, videoCapture->getFormat(), videoOutput);
+					encoder->convertEncodeWrite(buffer, rsize, videoOutput);
 
 					gettimeofday(&curTime, NULL);												
 					timeval endodeTime;

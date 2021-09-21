@@ -19,8 +19,8 @@ class V4l2Output;
 
 class JpegEncoder : public Encoder {
 	public:
-		JpegEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(width, height) {	
+		JpegEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
+			: Encoder(informat, width, height) {	
 
 			jpeg_create_compress(&m_cinfo);
 			m_cinfo.image_width = width;
@@ -44,7 +44,7 @@ class JpegEncoder : public Encoder {
 			m_i420buffer = new unsigned char [width*height*3/2];
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, int format, V4l2Output* videoOutput) {
+		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 				unsigned char * buffer_y = m_i420buffer;
 				unsigned char * buffer_u = buffer_y + m_width*m_height;
 				unsigned char * buffer_v = buffer_u + m_width*m_height/4;
@@ -56,7 +56,7 @@ class JpegEncoder : public Encoder {
 						0, 0,
 						m_width, m_height,
 						m_width, m_height,
-						libyuv::kRotate0, format);
+						libyuv::kRotate0, m_informat);
 
 				unsigned char* dest = NULL;
 				unsigned long  destsize = 0;
@@ -93,7 +93,7 @@ class JpegEncoder : public Encoder {
 		struct jpeg_error_mgr m_jerr;
 		struct jpeg_compress_struct m_cinfo;	
 		unsigned char * m_i420buffer;
-		
+
 	public:
 		static const bool registration;		
 };
