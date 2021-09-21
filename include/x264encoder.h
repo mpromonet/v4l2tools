@@ -25,9 +25,8 @@ extern "C"
 class X264Encoder : public Encoder {
 	public:
 		X264Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: m_encoder(NULL)
-			, m_width(width)
-			, m_height(height) {
+			: Encoder(width, height)
+			, m_encoder(NULL) {
 
 			x264_param_t param;
 			x264_param_default_preset(&param, "ultrafast", "zerolatency");
@@ -124,8 +123,6 @@ class X264Encoder : public Encoder {
 		x264_t* m_encoder;
 		x264_picture_t m_pic_in;
 		x264_picture_t m_pic_out;
-		int m_width;
-		int m_height;
 
 	public:
 		static const bool registration;

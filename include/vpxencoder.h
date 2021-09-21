@@ -24,8 +24,7 @@ class V4l2Output;
 class VpxEncoder : public Encoder {
 	public:
 		VpxEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: m_width(width)
-			, m_height(height)
+			: Encoder(width, height)
             , m_frame_cnt(0) {
 
 
@@ -119,9 +118,7 @@ class VpxEncoder : public Encoder {
 	private:
 		vpx_codec_ctx_t m_codec;
         vpx_image_t     m_input;
-		int m_width;
-		int m_height;
-        int m_frame_cnt;
+        int             m_frame_cnt;
 
 	public:
 		static const bool registration;        

@@ -84,7 +84,7 @@ int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTy
 					timersub(&curTime,&refTime,&captureTime);
 					refTime = curTime;
 					
-					encoder->convertEncodeWrite(buffer, rsize,videoCapture->getFormat(), videoOutput);
+					encoder->convertEncodeWrite(buffer, rsize, videoCapture->getFormat(), videoOutput);
 
 					gettimeofday(&curTime, NULL);												
 					timeval endodeTime;

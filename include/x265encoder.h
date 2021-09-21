@@ -25,9 +25,8 @@ extern "C"
 class X265Encoder : public Encoder {
 	public:
 		X265Encoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-            : m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL)
-            , m_width(width)
-            , m_height(height) {
+            : Encoder(width, height)
+			, m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL) {
 
 			x265_param param;
 			x265_param_default_preset(&param, "ultrafast", "zerolatency");
@@ -131,8 +130,6 @@ class X265Encoder : public Encoder {
 		x265_picture* m_pic_in;
 		x265_picture* m_pic_out;
         char* m_buff;
-		int m_width;
-		int m_height;
 
 	public:
 		static const bool registration;

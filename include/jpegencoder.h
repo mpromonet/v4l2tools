@@ -20,8 +20,7 @@ class V4l2Output;
 class JpegEncoder : public Encoder {
 	public:
 		JpegEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: m_width(width)
-			, m_height(height) {	
+			: Encoder(width, height) {	
 
 			jpeg_create_compress(&m_cinfo);
 			m_cinfo.image_width = width;
@@ -94,9 +93,7 @@ class JpegEncoder : public Encoder {
 		struct jpeg_error_mgr m_jerr;
 		struct jpeg_compress_struct m_cinfo;	
 		unsigned char * m_i420buffer;
-		int m_width;
-		int m_height;		
-
+		
 	public:
 		static const bool registration;		
 };
