@@ -14,7 +14,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
-#include "encoder.h"
+#include "encoderfactory.h"
 
 class V4l2Output;
 extern "C" 
@@ -126,4 +126,9 @@ class X264Encoder : public Encoder {
 		x264_picture_t m_pic_out;
 		int m_width;
 		int m_height;
+
+	public:
+		static const bool registration;
 };
+
+const bool X264Encoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_H264, EncoderCreator<X264Encoder>::Create);

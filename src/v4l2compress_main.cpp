@@ -24,6 +24,8 @@
 #include "V4l2Access.h"
 #include "V4l2Capture.h"
 
+#include "encoderfactory.h"
+
 extern int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose);
 
 /* ---------------------------------------------------------------------------
@@ -85,7 +87,11 @@ int main(int argc, char* argv[])
 
 				std::cout << "\t -C bitrate           : target CBR bitrate" << std::endl;
 				std::cout << "\t -V bitrate           : target VBR bitrate" << std::endl;
-				std::cout << "\t -f format            : format (default is VP80) " << std::endl;
+				std::cout << "\t -f format            : format (default is VP80) ( supported: ";
+				for (int format : EncoderFactory::get().SupportedFormat()) {
+					std::cout << V4l2Device::fourcc(format) << " ";
+				}
+				std::cout << ")" << std::endl;
 
 				std::cout << "\t -r                   : V4L2 capture using read interface (default use memory mapped buffers)" << std::endl;
 				std::cout << "\t -w                   : V4L2 capture using write interface (default use memory mapped buffers)" << std::endl;

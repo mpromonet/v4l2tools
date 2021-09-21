@@ -17,7 +17,7 @@
 
 #include "vpx/vpx_encoder.h"
 #include "vpx/vp8cx.h"
-#include "encoder.h"
+#include "encoderfactory.h"
 
 class V4l2Output;
 
@@ -122,4 +122,9 @@ class VpxEncoder : public Encoder {
 		int m_width;
 		int m_height;
         int m_frame_cnt;
+
+	public:
+		static const bool registration;        
 };
+
+const bool VpxEncoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_VP8, EncoderCreator<VpxEncoder>::Create) && EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_VP9, EncoderCreator<VpxEncoder>::Create);

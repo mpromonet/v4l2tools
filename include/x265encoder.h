@@ -14,7 +14,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
-#include "encoder.h"
+#include "encoderfactory.h"
 
 class V4l2Output;
 extern "C" 
@@ -133,4 +133,10 @@ class X265Encoder : public Encoder {
         char* m_buff;
 		int m_width;
 		int m_height;
+
+	public:
+		static const bool registration;
 };
+
+const bool X265Encoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_HEVC, EncoderCreator<X265Encoder>::Create);
+

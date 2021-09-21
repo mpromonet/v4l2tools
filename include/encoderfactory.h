@@ -13,61 +13,46 @@
 
 #include "encoder.h"
 
-#ifdef HAVE_X264   
-#include "x264encoder.h"
-#endif
-#ifdef HAVE_X265
-#include "x265encoder.h"
-#endif
-#ifdef HAVE_VPX   
-#include "vpxencoder.h"
-#endif
-#ifdef HAVE_JPEG  
-#include "jpegencoder.h"
-#endif
+typedef Encoder* (*encoderCreator)(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose);
+
+template<typename T> class EncoderCreator {
+        public:
+                static Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
+                        return new T(format, width, height, opt, verbose);
+                }
+
+                static const bool registration;
+};
 
 class EncoderFactory {
     public:
-    static Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
-        Encoder* encoder = NULL;
-        switch (format) {
-#ifdef HAVE_X265         
-            case V4L2_PIX_FMT_HEVC: encoder = new X265Encoder(format, width, height, opt, verbose); break;
-#endif            
-#ifdef HAVE_X264           
-            case V4L2_PIX_FMT_H264: encoder = new X264Encoder(format, width, height, opt, verbose); break;
-#endif            
-#ifdef HAVE_VPX            
-            case V4L2_PIX_FMT_VP8: encoder = new VpxEncoder(format, width, height, opt, verbose); break;
-            case V4L2_PIX_FMT_VP9: encoder = new VpxEncoder(format, width, height, opt, verbose); break;
-#endif            
-#ifdef HAVE_JPEG            
-            case V4L2_PIX_FMT_JPEG: encoder = new JpegEncoder(format, width, height, opt, verbose); break;
-#endif            
+        Encoder* Create(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
+                Encoder* encoder = NULL;
+                auto it = m_registry.find(format);
+                if (it != std::end(m_registry)) {
+                        encoder = it->second(format, width, height, opt, verbose);
+                }
+                return encoder;
         }
-        return encoder;
-    }
 
-    static std::list<int> SupportedFormat() {
-        std::list<int> formatList;
-#ifdef HAVE_X265         
-        formatList.push_back(V4L2_PIX_FMT_HEVC);
-#endif            
-#ifdef HAVE_X264           
-        formatList.push_back(V4L2_PIX_FMT_H264);
-#endif            
-#ifdef HAVE_VPX        
-        formatList.push_back(V4L2_PIX_FMT_VP8);    
-        formatList.push_back(V4L2_PIX_FMT_VP9);  
-#endif            
-#ifdef HAVE_JPEG 
-        formatList.push_back(V4L2_PIX_FMT_JPEG);            
-#endif              
-        return formatList;      
-    }
+        std::list<int> SupportedFormat() {
+                std::list<int> formatList;
+                for (auto it : m_registry) {
+                        formatList.push_back(it.first);
+                }
+                return formatList;      
+        }
 
-    EncoderFactory & get() {
-        static EncoderFactory instance;
-        return instance;
-    }
+        static EncoderFactory & get() {
+                static EncoderFactory instance;
+                return instance;
+        }
+
+        bool registerEncoder(int format, encoderCreator creator) {
+                m_registry[format] = creator;
+                return true;
+        }
+
+    private:
+        std::map<int, encoderCreator> m_registry;
 };

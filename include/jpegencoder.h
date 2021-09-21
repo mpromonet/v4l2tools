@@ -95,5 +95,11 @@ class JpegEncoder : public Encoder {
 		struct jpeg_compress_struct m_cinfo;	
 		unsigned char * m_i420buffer;
 		int m_width;
-		int m_height;
+		int m_height;		
+
+	public:
+		static const bool registration;		
 };
+
+const bool JpegEncoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_JPEG, EncoderCreator<JpegEncoder>::Create);
+

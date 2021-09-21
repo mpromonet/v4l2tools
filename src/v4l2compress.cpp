@@ -24,6 +24,19 @@
 
 #include "encoderfactory.h"
 
+#ifdef HAVE_X264   
+#include "x264encoder.h"
+#endif
+#ifdef HAVE_X265
+#include "x265encoder.h"
+#endif
+#ifdef HAVE_VPX   
+#include "vpxencoder.h"
+#endif
+#ifdef HAVE_JPEG  
+#include "jpegencoder.h"
+#endif
+
 // -----------------------------------------
 //    capture, compress, output 
 // -----------------------------------------
@@ -42,7 +55,7 @@ int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTy
 	}
 	else
 	{		
-		Encoder* encoder = EncoderFactory::Create(outformat, width, height, opt, verbose);
+		Encoder* encoder = EncoderFactory::get().Create(outformat, width, height, opt, verbose);
 		if (!encoder)
 		{
 			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat); 

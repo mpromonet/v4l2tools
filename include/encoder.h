@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "V4l2Output.h"
 class Encoder {
     public:
         virtual ~Encoder() {}
