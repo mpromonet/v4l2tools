@@ -6,7 +6,7 @@ linuxamd64_docker_builder:
   script: |
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
-    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG} . 
+    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-amd64 . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-amd64
 
 linuxarmv6_docker_builder:
@@ -18,7 +18,7 @@ linuxarmv6_docker_builder:
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
     docker run --rm --privileged hypriot/qemu-register
-    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG} --build-arg IMAGE=balenalib/raspberry-pi . 
+    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-armv6 --build-arg IMAGE=balenalib/raspberry-pi . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-armv6
 
 publish_docker_builder:
