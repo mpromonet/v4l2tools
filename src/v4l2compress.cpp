@@ -41,9 +41,9 @@
 #include "yuvconverter.h"
 
 // -----------------------------------------
-//    capture, compress, output 
+//    capture, convert, output 
 // -----------------------------------------
-int compress(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
+int convert(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoType ioTypeOut, int outformat, const std::map<std::string,std::string>& opt, int & stop, int verbose=0) {
 	int ret = 0;
 
 	// init V4L2 output interface
@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-		ret = compress(videoCapture, out_devname, ioTypeOut, outformat, opt, stop, verbose);
+		ret = convert(videoCapture, out_devname, ioTypeOut, outformat, opt, stop, verbose);
 		delete videoCapture;
 	}
 
