@@ -40,23 +40,55 @@ class CudaEncoder : public Encoder {
             ck(cuDeviceGetName(szDeviceName, sizeof(szDeviceName), cuDevice));
             std::cout << "GPU in use: " << szDeviceName << std::endl;
             ck(cuCtxCreate(&m_cuContext, 0, cuDevice));
+            ck(cuCtxPopCurrent(&m_cuContext));
 
             // create api
+            uint32_t version = 0;
+            ck(NvEncodeAPIGetMaxSupportedVersion(&version));
+            uint32_t currentVersion = (NVENCAPI_MAJOR_VERSION << 4) | NVENCAPI_MINOR_VERSION;
+            if (currentVersion > version)
+            {
+                std::cout << "Current Driver Version does not support this NvEncodeAPI version, please upgrade driver:" << NV_ENC_ERR_INVALID_VERSION << std::endl;
+            }
             m_nvenc = { NV_ENCODE_API_FUNCTION_LIST_VER };
-            NvEncodeAPICreateInstance(&m_nvenc);
+            ck(NvEncodeAPICreateInstance(&m_nvenc));
 
             // create encoder
             NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS encodeSessionExParams = { NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS_VER };
             encodeSessionExParams.device = m_cuContext;
             encodeSessionExParams.deviceType = NV_ENC_DEVICE_TYPE_CUDA;
             encodeSessionExParams.apiVersion = NVENCAPI_VERSION;
-            m_nvenc.nvEncOpenEncodeSessionEx(&encodeSessionExParams, &m_hEncoder);
+            ck(m_nvenc.nvEncOpenEncodeSessionEx(&encodeSessionExParams, &m_hEncoder));
 
             // init encoder
             NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
             NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
             initializeParams.encodeConfig = &encodeConfig;
-            m_nvenc.nvEncInitializeEncoder(m_hEncoder, &initializeParams);
+            initializeParams.encodeGUID        = NV_ENC_CODEC_H264_GUID;
+            initializeParams.presetGUID        = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;
+            initializeParams.encodeWidth       = m_width;
+            initializeParams.encodeHeight      = m_height;
+
+            NV_ENC_PRESET_CONFIG presetcfg = { NV_ENC_PRESET_CONFIG_VER };
+            presetcfg.presetCfg.version = NV_ENC_CONFIG_VER;
+            ck(m_nvenc.nvEncGetEncodePresetConfig(m_hEncoder, initializeParams.encodeGUID, initializeParams.presetGUID, &presetcfg));
+            memcpy(&encodeConfig, &presetcfg, sizeof(NV_ENC_CONFIG));
+
+            ck(m_nvenc.nvEncInitializeEncoder(m_hEncoder, &initializeParams));
+
+            // create inputbuffer
+            m_inputBuffer.version    = NV_ENC_CREATE_INPUT_BUFFER_VER;
+            m_inputBuffer.width      = m_width;
+            m_inputBuffer.height     = m_height;
+            m_inputBuffer.memoryHeap = NV_ENC_MEMORY_HEAP_SYSMEM_CACHED;
+            m_inputBuffer.bufferFmt  = NV_ENC_BUFFER_FORMAT_IYUV;
+            ck(m_nvenc.nvEncCreateInputBuffer(m_hEncoder,&m_inputBuffer));
+
+            // create outputbuffer
+            m_outputBuffer.version    = NV_ENC_CREATE_BITSTREAM_BUFFER_VER;
+            m_outputBuffer.size       = 2 * 1024 * 1024;  // No idea why
+            m_outputBuffer.memoryHeap = NV_ENC_MEMORY_HEAP_SYSMEM_CACHED;
+            ck(m_nvenc.nvEncCreateBitstreamBuffer(m_hEncoder, &m_outputBuffer));
         }
 
         virtual ~CudaEncoder() {
@@ -66,36 +98,37 @@ class CudaEncoder : public Encoder {
 
         virtual void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
-            cuCtxPushCurrent(m_cuContext);
-            /*
-            CUDA_MEMCPY2D m = { 0 };
-            m.srcMemoryType = CU_MEMORYTYPE_HOST;
-            m.srcHost = buffer;
-            m.srcPitch = srcPitch;
-            m.dstMemoryType = CU_MEMORYTYPE_DEVICE;
-            m.dstDevice = pDstFrame;
-            m.dstPitch = dstPitch;
-            m.WidthInBytes = NvEncoder::GetWidthInBytes(pixelFormat, width);
-            m.Height = m_height;
-            cuMemcpy2D(&m);
-            cuCtxPopCurrent(NULL);
+            // fill inputbuffer
+            NV_ENC_LOCK_INPUT_BUFFER inputbufferlocker = { NV_ENC_LOCK_INPUT_BUFFER_VER };
+            inputbufferlocker.inputBuffer = m_inputBuffer.inputBuffer;
+            ck(m_nvenc.nvEncLockInputBuffer(m_hEncoder, &inputbufferlocker));
+            memcpy((void*)inputbufferlocker.bufferDataPtr, buffer, rsize);
+            ck(m_nvenc.nvEncUnlockInputBuffer(m_hEncoder, &inputbufferlocker));
 
+            // encode
             NV_ENC_PIC_PARAMS picParams = {};
             picParams.version = NV_ENC_PIC_PARAMS_VER;
             picParams.pictureStruct = NV_ENC_PIC_STRUCT_FRAME;
-            picParams.inputBuffer = inputBuffer;
-            picParams.bufferFmt = GetPixelFormat();
-            picParams.inputWidth = GetEncodeWidth();
-            picParams.inputHeight = GetEncodeHeight();
-            picParams.outputBitstream = outputBuffer;
+            picParams.inputBuffer = m_inputBuffer.inputBuffer;
+            picParams.outputBitstream = m_outputBuffer.bitstreamBuffer;
             NVENCSTATUS nvStatus = m_nvenc.nvEncEncodePicture(m_hEncoder, &picParams);
-            */
+
+            // retrieve encoded data from outputbuffer
+            NV_ENC_LOCK_BITSTREAM outputbufferlocker = { NV_ENC_LOCK_BITSTREAM_VER };
+            outputbufferlocker.outputBitstream = m_outputBuffer.bitstreamBuffer;
+            m_nvenc.nvEncLockBitstream(m_hEncoder, &outputbufferlocker);
+            int wsize = videoOutput->write((char*)outputbufferlocker.bitstreamBufferPtr, outputbufferlocker.bitstreamSizeInBytes);
+            LOG(DEBUG) << "Copied " << rsize << " " << wsize;           
+            m_nvenc.nvEncUnlockBitstream(m_hEncoder, &outputbufferlocker);
+
         }
 
     private:
         CUcontext m_cuContext;
         NV_ENCODE_API_FUNCTION_LIST m_nvenc;
         void *m_hEncoder = nullptr;
+        NV_ENC_CREATE_INPUT_BUFFER m_inputBuffer;
+        NV_ENC_CREATE_BITSTREAM_BUFFER m_outputBuffer;
 
 	public:
 		static const bool registration;        

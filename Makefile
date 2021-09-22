@@ -116,7 +116,7 @@ v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)
 
 # read V4L2 capture -> compress using libvpx/libx264/libx265 -> write V4L2 output
-v4l2compress: src/v4l2compress_main.cpp src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
+v4l2compress: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> uncompress using libjpeg -> write V4L2 output
