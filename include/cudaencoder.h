@@ -26,10 +26,12 @@ inline bool check(int e, int iLine, const char *szFile) {
 
 class CudaEncoder : public Encoder {
     public:
-        CudaEncoder(int format, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
+        CudaEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose)
+            : Encoder(informat, width, height) {
             ck(cuInit(0));
             int nGpu = 0;
-            ck(cuDeviceGetCount(&nGpu));            
+            ck(cuDeviceGetCount(&nGpu));  
+            std::cout << "Nb GPU: " << nGpu << std::endl;          
 
             int iGpu = 0;
             CUdevice cuDevice = 0;
@@ -45,7 +47,7 @@ class CudaEncoder : public Encoder {
 
             // create encoder
             NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS encodeSessionExParams = { NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS_VER };
-            encodeSessionExParams.device = cuContext;
+            encodeSessionExParams.device = m_cuContext;
             encodeSessionExParams.deviceType = NV_ENC_DEVICE_TYPE_CUDA;
             encodeSessionExParams.apiVersion = NVENCAPI_VERSION;
             m_nvenc.nvEncOpenEncodeSessionEx(&encodeSessionExParams, &m_hEncoder);
@@ -59,11 +61,13 @@ class CudaEncoder : public Encoder {
 
         virtual ~CudaEncoder() {
             m_nvenc.nvEncDestroyEncoder(m_hEncoder);
+            cuCtxDestroy(m_cuContext);
         }
 
-        virtual void convertEncodeWrite(const char* buffer, unsigned int rsize, int format, V4l2Output* videoOutput) {
+        virtual void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
             cuCtxPushCurrent(m_cuContext);
+            /*
             CUDA_MEMCPY2D m = { 0 };
             m.srcMemoryType = CU_MEMORYTYPE_HOST;
             m.srcHost = buffer;
@@ -72,7 +76,7 @@ class CudaEncoder : public Encoder {
             m.dstDevice = pDstFrame;
             m.dstPitch = dstPitch;
             m.WidthInBytes = NvEncoder::GetWidthInBytes(pixelFormat, width);
-            m.Height = height;
+            m.Height = m_height;
             cuMemcpy2D(&m);
             cuCtxPopCurrent(NULL);
 
@@ -85,6 +89,7 @@ class CudaEncoder : public Encoder {
             picParams.inputHeight = GetEncodeHeight();
             picParams.outputBitstream = outputBuffer;
             NVENCSTATUS nvStatus = m_nvenc.nvEncEncodePicture(m_hEncoder, &picParams);
+            */
         }
 
     private:

@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "libyuv.h"
 #include "encoderfactory.h"
 
 class YuvConverter : public Encoder {
