@@ -50,59 +50,65 @@ ALL_PROGS+=v4l2display_h264
 ALL_PROGS+=v4l2compress_omx
 endif
 
+ifeq ("$(ARCH)","x86_64")
 # cuda
 CUDADIR=/usr/local/cuda
 ifneq ($(wildcard $(CUDADIR)),)
 CFLAGS  +=-DHAVE_CUDA -I $(CUDADIR)/include/ -I $(PWD)/Video_Codec_SDK_11.1.5/Interface
 LDFLAGS += $(PWD)/Video_Codec_SDK_11.1.5/Lib/linux/stubs/x86_64/libnvidia-encode.so $(PWD)/Video_Codec_SDK_11.1.5/Lib/linux/stubs/x86_64/libnvcuvid.so /usr/local/cuda/targets/x86_64-linux/lib/stubs/libcuda.so
 endif
+endif
 
 
 # opencv
-ifneq ($(wildcard /usr/include/opencv),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/opencv),)
 ALL_PROGS+=v4l2detect_yuv
 endif
 
 # libx264
-ifneq ($(wildcard /usr/include/x264.h),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/x264.h),)
 CFLAGS += -DHAVE_X264
 LDFLAGS += -lx264
 endif
 
 # libx265
-ifneq ($(wildcard /usr/include/x265.h),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/x265.h),)
 CFLAGS += -DHAVE_X265
 LDFLAGS += -lx265
 endif
 
 # libvpx
-ifneq ($(wildcard /usr/include/vpx),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/vpx),)
 CFLAGS += -DHAVE_VPX
 LDFLAGS += -lvpx
 endif
 
 # libjpeg
-ifneq ($(wildcard /usr/include/jpeglib.h),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/jpeglib.h),)
 ALL_PROGS+=v4l2uncompress_jpeg
 CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
 
 # libfuse
-ifneq ($(wildcard /usr/include/fuse.h),)
+ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/fuse.h),)
 ALL_PROGS+=v4l2fuse
 endif
 
 all: $(ALL_PROGS)
 
-libyuv.a:
+libyuv/CMakeLists.txt:
 	git submodule update --init libyuv
-	cd libyuv && cmake -DCMAKE_CXX_FLAGS=$(CMAKE_CXX_FLAGS) . && make VERBOSE=1
+
+libyuv.a: libyuv/CMakeLists.txt
+	cd libyuv && cmake -DCMAKE_CXX_FLAGS=$(CMAKE_CXX_FLAGS) . && make 
 	mv libyuv/libyuv.a .
 	make -C libyuv clean
 
-libv4l2wrapper.a: 
+v4l2wrapper/Makefile:
 	git submodule update --init v4l2wrapper
+
+libv4l2wrapper.a: v4l2wrapper/Makefile
 	make -C v4l2wrapper
 	mv v4l2wrapper/libv4l2wrapper.a .
 	make -C v4l2wrapper clean
