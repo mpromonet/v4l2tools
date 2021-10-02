@@ -4,6 +4,7 @@ RM = rm -rf
 CC = $(CROSS)gcc
 CXX = $(CROSS)g++
 PREFIX?=/usr
+$(info PREFIX=$(PREFIX))
 DESTDIR?=$(PREFIX)
 ARCH?=$(shell uname -m)
 $(info ARCH=$(ARCH))
@@ -14,9 +15,9 @@ CFLAGS += -DLIBYUV_DISABLE_NEON
 endif
 
 # log4cpp
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/log4cpp/Category.hh),)
+ifeq ($(shell pkg-config --exists log4cpp && echo yes || echo no),yes)
 $(info with log4cpp)
-CFLAGS += -DHAVE_LOG4CPP -I $(SYSROOT)$(PREFIX)/include
+CFLAGS += -DHAVE_LOG4CPP 
 LDFLAGS += -llog4cpp 
 endif
 
@@ -61,37 +62,41 @@ endif
 
 
 # opencv
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/opencv),)
+ifeq ($(shell pkg-config --exists opencv && echo yes || echo no),yes)
 ALL_PROGS+=v4l2detect_yuv
 endif
 
 # libx264
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/x264.h),)
+ifeq ($(shell pkg-config --exists x264 && echo yes || echo no),yes)
+$(info with x264)
 CFLAGS += -DHAVE_X264
 LDFLAGS += -lx264
 endif
 
 # libx265
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/x265.h),)
+ifeq ($(shell pkg-config --exists x265 && echo yes || echo no),yes)
+$(info with x265)
 CFLAGS += -DHAVE_X265
 LDFLAGS += -lx265
 endif
 
 # libvpx
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/vpx),)
+ifeq ($(shell pkg-config --exists vpx && echo yes || echo no),yes)
+$(info with vpx)
 CFLAGS += -DHAVE_VPX
 LDFLAGS += -lvpx
 endif
 
 # libjpeg
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/jpeglib.h),)
+ifeq ($(shell pkg-config --exists libjpeg && echo yes || echo no),yes)
+$(info with jpeg)
 ALL_PROGS+=v4l2uncompress_jpeg
 CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
 
 # libfuse
-ifneq ($(wildcard $(SYSROOT)$(PREFIX)/include/fuse.h),)
+ifeq ($(shell pkg-config --exists fuse && echo yes || echo no),yes)
 ALL_PROGS+=v4l2fuse
 endif
 
@@ -123,11 +128,12 @@ v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a
 
 # read V4L2 capture -> compress using libvpx/libx264/libx265 -> write V4L2 output
 v4l2compress: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
+	echo $(LDFLAGS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
 
 # read V4L2 capture -> uncompress using libjpeg -> write V4L2 output
 v4l2uncompress_jpeg: src/v4l2uncompress_jpeg.cpp libyuv.a  libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -ljpeg -I libyuv/include
+	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)  -I libyuv/include
 	
 # try with opencv
 v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
