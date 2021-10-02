@@ -32,11 +32,24 @@ linuxarmv7_docker_builder:
     docker run --rm --privileged hypriot/qemu-register
     docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-armv7 --build-arg IMAGE=balenalib/raspberry-pi2 . 
     docker push $CIRRUS_REPO_FULL_NAME:${TAG}-armv7
+
+linuxarm64_docker_builder:
+  env:
+    DOCKER_CLI_EXPERIMENTAL: enabled
+    DOCKERHUB_USER: ENCRYPTED[600c413356e94f5f5270c4906d72989d81dccbb8f94b2b8e1804d2b70269b860cdaf5044ff38d62555a80594102c9c7e]
+    DOCKERHUB_PASS: ENCRYPTED[4f7cac3ac4d6bb39f41d912781136daf4eea114aaa947a29186a883e2ae6d1ba34ccd406f7c19785adc0f88b74ef4ddf]
+  script: |
+    export TAG=${CIRRUS_TAG:-latest}
+    docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
+    docker run --rm --privileged hypriot/qemu-register
+    docker build -t $CIRRUS_REPO_FULL_NAME:${TAG}-armv7 --build-arg IMAGE=arm64v8/ubuntu:20.04 . 
+    docker push $CIRRUS_REPO_FULL_NAME:${TAG}-arm64
     
 publish_docker_builder:
   depends_on: 
     - linuxarmv6
-    - linuxarmv7    
+    - linuxarmv7  
+    - linuxarm64
     - linuxamd64
   env:
     DOCKER_CLI_EXPERIMENTAL: enabled
@@ -46,7 +59,7 @@ publish_docker_builder:
     docker info
     export TAG=${CIRRUS_TAG:-latest}
     docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS 
-    docker manifest create --amend $CIRRUS_REPO_FULL_NAME:${TAG} $CIRRUS_REPO_FULL_NAME:${TAG}-amd64 $CIRRUS_REPO_FULL_NAME:${TAG}-armv6 $CIRRUS_REPO_FULL_NAME:${TAG}-armv7
+    docker manifest create --amend $CIRRUS_REPO_FULL_NAME:${TAG} $CIRRUS_REPO_FULL_NAME:${TAG}-amd64 $CIRRUS_REPO_FULL_NAME:${TAG}-armv6 $CIRRUS_REPO_FULL_NAME:${TAG}-armv7 $CIRRUS_REPO_FULL_NAME:${TAG}-arm64
     docker manifest annotate $CIRRUS_REPO_FULL_NAME:${TAG} $CIRRUS_REPO_FULL_NAME:${TAG}-armv6 --os linux --arch arm --variant v6l
     docker manifest annotate $CIRRUS_REPO_FULL_NAME:${TAG} $CIRRUS_REPO_FULL_NAME:${TAG}-armv7 --os linux --arch arm --variant v7
     docker manifest push $CIRRUS_REPO_FULL_NAME:${TAG} -p    
