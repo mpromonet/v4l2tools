@@ -11,16 +11,16 @@
 
 #include "libyuv.h"
 #include "logger.h"
-#include "encoder.h"
+#include "codecfactory.h"
 
 #include <jpeglib.h>
 
 class V4l2Output;
 
-class JpegEncoder : public Encoder {
+class JpegEncoder : public Codec {
 	public:
 		JpegEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(informat, width, height) {	
+			: Codec(informat, width, height) {	
 
 			jpeg_create_compress(&m_cinfo);
 			m_cinfo.image_width = width;
@@ -44,7 +44,7 @@ class JpegEncoder : public Encoder {
 			m_i420buffer = new unsigned char [width*height*3/2];
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
+		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 				unsigned char * buffer_y = m_i420buffer;
 				unsigned char * buffer_u = buffer_y + m_width*m_height;
 				unsigned char * buffer_v = buffer_u + m_width*m_height/4;
@@ -98,5 +98,5 @@ class JpegEncoder : public Encoder {
 		static const bool registration;		
 };
 
-const bool JpegEncoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_JPEG, EncoderCreator<JpegEncoder>::Create);
+const bool JpegEncoder::registration = CodecFactory::get().registerEncoder(V4L2_PIX_FMT_JPEG, CodecCreator<JpegEncoder>::Create);
 

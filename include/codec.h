@@ -3,19 +3,19 @@
 ** support, and with no warranty, express or implied, as to its usefulness for
 ** any purpose.
 **
-** encoder.h
+** codec.h
 ** 
 ** -------------------------------------------------------------------------*/
 
 #pragma once
 
 #include "V4l2Output.h"
-class Encoder {
+class Codec {
     public:
-        Encoder(int format, int width, int height): m_informat(format), m_width(width), m_height(height) {}
-        virtual ~Encoder() {}
+        Codec(int format, int width, int height): m_informat(format), m_width(width), m_height(height) {}
+        virtual ~Codec() {}
 
-        virtual void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) = 0;
+        virtual void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) = 0;
 
     protected:
         int m_informat;

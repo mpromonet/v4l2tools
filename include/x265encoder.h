@@ -14,7 +14,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
 class V4l2Output;
 extern "C" 
@@ -22,10 +22,10 @@ extern "C"
 	#include "x265.h"
 }
 
-class X265Encoder : public Encoder {
+class X265Encoder : public Codec {
 	public:
 		X265Encoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-            : Encoder(informat, width, height)
+            : Codec(informat, width, height)
 			, m_encoder(NULL), m_pic_in(NULL), m_pic_out(NULL), m_buff(NULL) {
 
 			x265_param param;
@@ -80,7 +80,7 @@ class X265Encoder : public Encoder {
 			}
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
+		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 							(uint8*)m_pic_in->planes[0], m_width,
@@ -135,5 +135,5 @@ class X265Encoder : public Encoder {
 		static const bool registration;
 };
 
-const bool X265Encoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_HEVC, EncoderCreator<X265Encoder>::Create);
+const bool X265Encoder::registration = CodecFactory::get().registerEncoder(V4L2_PIX_FMT_HEVC, CodecCreator<X265Encoder>::Create);
 

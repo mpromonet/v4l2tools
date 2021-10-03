@@ -24,7 +24,7 @@
 #include "V4l2Access.h"
 #include "V4l2Capture.h"
 
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
 #ifdef HAVE_X264   
 #include "x264encoder.h"
@@ -37,6 +37,7 @@
 #endif
 #ifdef HAVE_JPEG  
 #include "jpegencoder.h"
+#include "jpegdecoder.h"
 #endif
 #include "yuvconverter.h"
 
@@ -59,8 +60,8 @@ int convert(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTyp
 	else
 	{		
 		int informat = videoCapture->getFormat();
-		Encoder* encoder = EncoderFactory::get().Create(outformat, informat, width, height, opt, verbose);
-		if (!encoder)
+		Codec* codec = CodecFactory::get().Create(outformat, informat, width, height, opt, verbose);
+		if (!codec)
 		{
 			LOG(WARN) << "Cannot create encoder " << V4l2Device::fourcc(outformat); 
 		}
@@ -88,7 +89,7 @@ int convert(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTyp
 					timersub(&curTime,&refTime,&captureTime);
 					refTime = curTime;
 					
-					encoder->convertEncodeWrite(buffer, rsize, videoOutput);
+					codec->convertAndWrite(buffer, rsize, videoOutput);
 
 					gettimeofday(&curTime, NULL);												
 					timeval endodeTime;
@@ -105,7 +106,7 @@ int convert(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTyp
 				}
 			}
 			
-			delete encoder;
+			delete codec;
 		}
 		delete videoOutput;
 	}
@@ -173,7 +174,7 @@ int main(int argc, char* argv[])
 				std::cout << "\t -C bitrate           : target CBR bitrate" << std::endl;
 				std::cout << "\t -V bitrate           : target VBR bitrate" << std::endl;
 				std::cout << "\t -f format            : format (default is VP80) ( supported: ";
-				for (int format : EncoderFactory::get().SupportedFormat()) {
+				for (int format : CodecFactory::get().SupportedFormat()) {
 					std::cout << V4l2Device::fourcc(format) << " ";
 				}
 				std::cout << ")" << std::endl;

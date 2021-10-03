@@ -14,7 +14,7 @@
 
 #include "libyuv.h"
 #include "logger.h"
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
 class V4l2Output;
 extern "C" 
@@ -22,10 +22,10 @@ extern "C"
 	#include "x264.h"
 }
 
-class X264Encoder : public Encoder {
+class X264Encoder : public Codec {
 	public:
 		X264Encoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(informat, width, height)
+			: Codec(informat, width, height)
 			, m_encoder(NULL) {
 
 			x264_param_t param;
@@ -78,7 +78,7 @@ class X264Encoder : public Encoder {
 			}			
 		}
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
+		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
 				libyuv::ConvertToI420((const uint8*)buffer, rsize,
 						m_pic_in.img.plane[0], m_width,
@@ -128,4 +128,4 @@ class X264Encoder : public Encoder {
 		static const bool registration;
 };
 
-const bool X264Encoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_H264, EncoderCreator<X264Encoder>::Create);
+const bool X264Encoder::registration = CodecFactory::get().registerEncoder(V4L2_PIX_FMT_H264, CodecCreator<X264Encoder>::Create);

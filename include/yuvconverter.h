@@ -10,13 +10,13 @@
 #pragma once
 
 #include "libyuv.h"
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
-class YuvConverter : public Encoder
+class YuvConverter : public Codec
 {
 public:
         YuvConverter(int outformat, int informat, int width, int height, const std::map<std::string, std::string> &opt, int verbose)
-            : Encoder(informat, width, height), m_outformat(outformat)
+            : Codec(informat, width, height), m_outformat(outformat)
         {
                 m_i420 = new uint8[width * height * 2];
         }
@@ -26,7 +26,7 @@ public:
                 delete[] m_i420;
         }
 
-        void convertEncodeWrite(const char *buffer, unsigned int rsize, V4l2Output *videoOutput)
+        void convertAndWrite(const char *buffer, unsigned int rsize, V4l2Output *videoOutput)
         {
                 uint8 *i420_p0 = m_i420;
                 uint8 *i420_p1 = i420_p0 + m_width * m_height;
@@ -61,4 +61,4 @@ public:
         static const bool registration;
 };
 
-const bool YuvConverter::registration = EncoderFactory::get().registerEncoder(0, EncoderCreator<YuvConverter>::Create);
+const bool YuvConverter::registration = CodecFactory::get().registerEncoder(0, CodecCreator<YuvConverter>::Create);

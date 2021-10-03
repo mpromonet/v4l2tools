@@ -17,14 +17,14 @@
 
 #include "vpx/vpx_encoder.h"
 #include "vpx/vp8cx.h"
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
 class V4l2Output;
 
-class VpxEncoder : public Encoder {
+class VpxEncoder : public Codec {
 	public:
 		VpxEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) 
-			: Encoder(informat, width, height)
+			: Codec(informat, width, height)
             , m_frame_cnt(0) {
 
 
@@ -78,7 +78,7 @@ class VpxEncoder : public Encoder {
             return algo;
         }        
 
-		void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
+		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
                 libyuv::ConvertToI420((const uint8*)buffer, rsize,
                     m_input.planes[0], m_width,
@@ -124,4 +124,4 @@ class VpxEncoder : public Encoder {
 		static const bool registration;        
 };
 
-const bool VpxEncoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_VP8, EncoderCreator<VpxEncoder>::Create) && EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_VP9, EncoderCreator<VpxEncoder>::Create);
+const bool VpxEncoder::registration = CodecFactory::get().registerEncoder(V4L2_PIX_FMT_VP8, CodecCreator<VpxEncoder>::Create) && CodecFactory::get().registerEncoder(V4L2_PIX_FMT_VP9, CodecCreator<VpxEncoder>::Create);

@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "encoderfactory.h"
+#include "codecfactory.h"
 
 #include <cuda.h>
 #include "nvEncodeAPI.h"
@@ -24,10 +24,10 @@ inline bool check(int e, int iLine, const char *szFile) {
 
 #define ck(call) check(call, __LINE__, __FILE__)
 
-class CudaEncoder : public Encoder {
+class CudaEncoder : public Codec {
     public:
         CudaEncoder(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose)
-            : Encoder(informat, width, height) {
+            : Codec(informat, width, height) {
             ck(cuInit(0));
             int nGpu = 0;
             ck(cuDeviceGetCount(&nGpu));  
@@ -96,7 +96,7 @@ class CudaEncoder : public Encoder {
             cuCtxDestroy(m_cuContext);
         }
 
-        virtual void convertEncodeWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
+        virtual void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
             // fill inputbuffer
             NV_ENC_LOCK_INPUT_BUFFER inputbufferlocker = { NV_ENC_LOCK_INPUT_BUFFER_VER };
@@ -134,4 +134,4 @@ class CudaEncoder : public Encoder {
 		static const bool registration;        
 };
 
-const bool CudaEncoder::registration = EncoderFactory::get().registerEncoder(V4L2_PIX_FMT_H264, EncoderCreator<CudaEncoder>::Create);
+const bool CudaEncoder::registration = CodecFactory::get().registerEncoder(V4L2_PIX_FMT_H264, CodecCreator<CudaEncoder>::Create);
