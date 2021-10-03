@@ -27,7 +27,7 @@ class CodecFactory {
         Codec* Create(int outformat, int informat, int width, int height, const std::map<std::string,std::string> & opt, int verbose) {
                 Codec* convertor = NULL;
                 auto itDecoder = m_registryDecoder.find(informat);
-                if (itDecoder != std::end(m_registryEncoder)) {
+                if (itDecoder != std::end(m_registryDecoder)) {
                         convertor = itDecoder->second(outformat, informat, width, height, opt, verbose);
                 } else {
                         auto itEncoder = m_registryEncoder.find(outformat);

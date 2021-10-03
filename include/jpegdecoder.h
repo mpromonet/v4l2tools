@@ -36,10 +36,9 @@ class JpegDecoder : public Codec {
 				jpeg_mem_src(&m_cinfo, (unsigned char*)buffer, rsize);	
 				jpeg_read_header(&m_cinfo, TRUE);
 				LOG(INFO) << "width:" << m_cinfo.image_width << " height:" << m_cinfo.image_height << " num_components:" << m_cinfo.num_components; 
+				m_cinfo.out_color_space = JCS_YCbCr;
 
 				jpeg_start_decompress(&m_cinfo);
-				unsigned int image_size = m_cinfo.image_width * m_cinfo.image_height * m_cinfo.num_components;
-				unsigned char image_buffer[image_size];	
 
 				unsigned char bufline[m_cinfo.image_width *  m_cinfo.num_components]; 
 				while (m_cinfo.output_scanline < m_cinfo.output_height) 
@@ -63,7 +62,7 @@ class JpegDecoder : public Codec {
                                         m_width, m_height,
                                         m_outformat);
 
-                int wsize = videoOutput->write((char *)image_buffer,image_size);
+                int wsize = videoOutput->write((char *)outBuffer,videoOutput->getBufferSize());
                 LOG(DEBUG) << "Copied size:" << wsize;
 
 		}			

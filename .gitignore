@@ -4,3 +4,7 @@ v4l2source_yuv
 v4l2compress
 v4l2uncompress_jpeg
 *.a
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+
