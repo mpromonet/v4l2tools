@@ -140,17 +140,17 @@ v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -lopencv_core -lopencv_objdetect -lopencv_imgproc -I libyuv/include
 
 # dump
-h264bitstream/Makefile:
+h264bitstream/Makefile.am:
 	git submodule update --init h264bitstream	
 
-h264bitstream/.libs/libh264bitstream.so: h264bitstream/Makefile
+h264bitstream/.libs/libh264bitstream.so: h264bitstream/Makefile.am
 	cd h264bitstream && autoreconf -i -f && ./configure --host $(shell $(CC) -dumpmachine)
 	make -C h264bitstream 
 
-hevcbitstream/Makefile:
+hevcbitstream/Makefile.am:
 	git submodule update --init hevcbitstream	
 
-hevcbitstream/.libs/libhevcbitstream.so: hevcbitstream/Makefile
+hevcbitstream/.libs/libhevcbitstream.so: hevcbitstream/Makefile.am
 	cd hevcbitstream && autoreconf -i -f && LDFLAGS=-lm ./configure --host $(shell $(CC) -dumpmachine)
 	make -C hevcbitstream 
 
