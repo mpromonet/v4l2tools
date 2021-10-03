@@ -83,5 +83,5 @@ class JpegDecoder : public Codec {
 		static const bool 				registration;		
 };
 
-const bool JpegDecoder::registration = CodecFactory::get().registerDecoder(V4L2_PIX_FMT_JPEG, CodecCreator<JpegEncoder>::Create);
+const bool JpegDecoder::registration = CodecFactory::get().registerDecoder(V4L2_PIX_FMT_JPEG, CodecCreator<JpegDecoder>::Create);
 
