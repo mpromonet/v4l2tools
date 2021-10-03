@@ -25,7 +25,7 @@
 
   grade: stable 
   confinement: strict
-  base: core18
+  base: core20
 
   parts:
     v4l2tools:
@@ -42,7 +42,7 @@
       - libtool
       - libx264-dev
       - libx265-dev
-      - libjpeg8-dev
+      - libjpeg-dev
       - libvpx-dev
       stage-packages:
       - x264
