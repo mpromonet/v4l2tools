@@ -29,3 +29,6 @@ endif()
 add_subdirectory(libyuv EXCLUDE_FROM_ALL)
 include_directories("libyuv/include")
 target_link_libraries (${PROJECT_NAME} yuv)
+
+# install
+install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
