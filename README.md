@@ -29,8 +29,8 @@ Tools
 
  - v4l2compress  : 
 
->	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC/JPEG format and write to a V4L2 output device
->	read JPEG format from a V4L2 capture device, uncompress in JPEG format and write to a V4L2 output device
+>	read YUV from a V4L2 capture device, compress in VP8/VP9/H264/HEVC/JPEG format and write to a V4L2 output device    
+>	read JPEG format from a V4L2 capture device, uncompress in JPEG format and write to a V4L2 output device    
 
  - v4l2dump          : 
 
