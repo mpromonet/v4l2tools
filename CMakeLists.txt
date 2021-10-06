@@ -18,7 +18,7 @@ include_directories("v4l2wrapper/inc")
 add_library(v4l2wrapper STATIC ${LIBSRC_FILES})
 target_link_libraries (${PROJECT_NAME} v4l2wrapper)
 
-#libyuv
+#libjpeg
 include(FindJPEG)
 if (JPEG_FOUND)
   include_directories(${JPEG_INCLUDE_DIR})
@@ -26,9 +26,36 @@ if (JPEG_FOUND)
   add_definitions(-DHAVE_JPEG)
 endif()
 
+#yuv
 add_subdirectory(libyuv EXCLUDE_FROM_ALL)
 include_directories("libyuv/include")
 target_link_libraries (${PROJECT_NAME} yuv)
+
+find_package(PkgConfig)
+
+# x264
+pkg_check_modules(X264 x264)
+if (X264_FOUND) 
+  include_directories(${X264_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} ${X264_LIBRARIES})
+  add_definitions(-DHAVE_X264)
+endif()
+
+# x265
+pkg_check_modules(X265 x265)
+if (X265_FOUND) 
+  include_directories(${X265_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} ${X265_LIBRARIES})
+  add_definitions(-DHAVE_X265)
+endif()
+
+# vpx
+pkg_check_modules(VPX vpx)
+if (VPX_FOUND) 
+  include_directories(${VPX_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} ${VPX_LIBRARIES})
+  add_definitions(-DHAVE_VPX)
+endif()
 
 # install
 install (TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
