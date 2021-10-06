@@ -90,7 +90,6 @@ endif
 # libjpeg
 ifeq ($(shell pkg-config --exists libjpeg && echo yes || echo no),yes)
 $(info with jpeg)
-ALL_PROGS+=v4l2uncompress_jpeg
 CFLAGS += -DHAVE_JPEG
 LDFLAGS += -ljpeg
 endif
@@ -130,10 +129,6 @@ v4l2source_yuv: src/v4l2source_yuv.cpp  libv4l2wrapper.a
 v4l2compress: src/v4l2compress.cpp libyuv.a  libv4l2wrapper.a
 	echo $(LDFLAGS)
 	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS) -I libyuv/include
-
-# read V4L2 capture -> uncompress using libjpeg -> write V4L2 output
-v4l2uncompress_jpeg: src/v4l2uncompress_jpeg.cpp libyuv.a  libv4l2wrapper.a
-	$(CXX) -o $@ $(CFLAGS) $^ $(LDFLAGS)  -I libyuv/include
 	
 # try with opencv
 v4l2detect_yuv: src/v4l2detect_yuv.cpp libyuv.a  libv4l2wrapper.a
