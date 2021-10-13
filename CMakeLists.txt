@@ -13,9 +13,8 @@ include_directories("include")
 add_executable(${PROJECT_NAME} src/v4l2compress.cpp)
 
 # v4l2wrapper
-aux_source_directory(v4l2wrapper/src LIBSRC_FILES)
+add_subdirectory(v4l2wrapper)
 include_directories("v4l2wrapper/inc")
-add_library(v4l2wrapper STATIC ${LIBSRC_FILES})
 target_link_libraries (${PROJECT_NAME} v4l2wrapper)
 
 #libjpeg
