@@ -25,6 +25,12 @@ if (JPEG_FOUND)
   add_definitions(-DHAVE_JPEG)
 endif()
 
+#neon support
+MESSAGE("CMAKE_SYSTEM_PROCESSOR = ${CMAKE_SYSTEM_PROCESSOR}")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+  add_definitions(-DLIBYUV_DISABLE_NEON)
+endif()
+
 #yuv
 add_subdirectory(libyuv EXCLUDE_FROM_ALL)
 include_directories("libyuv/include")
