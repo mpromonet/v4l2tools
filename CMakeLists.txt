@@ -51,7 +51,7 @@ if (WITH_X264)
     include_directories(${X264_INCLUDE_DIR})
     target_link_libraries(${PROJECT_NAME} ${X264_LIBRARIES})
     add_definitions(-DHAVE_X264)
-  else
+  else()
     message(FATAL_ERROR "x264 enabled but not found")
   endif()
 endif()
