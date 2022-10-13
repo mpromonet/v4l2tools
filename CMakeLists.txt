@@ -6,8 +6,6 @@ project(${BASENAME})
 
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_C_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS "-Wall")
 
 # define executable to build
 include_directories("include")
