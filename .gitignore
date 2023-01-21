@@ -1,7 +1,7 @@
 v4l2dump
 v4l2copy
 v4l2source_yuv
-v4l2compress
+v4l2tools
 v4l2uncompress_jpeg
 *.a
 CMakeCache.txt
