@@ -113,7 +113,7 @@ v4l2wrapper/Makefile:
 	git submodule update --init v4l2wrapper
 
 libv4l2wrapper.a: v4l2wrapper/Makefile
-	make -C v4l2wrapper
+	cd v4l2wrapper && cmake . && make
 	mv v4l2wrapper/libv4l2wrapper.a .
 	make -C v4l2wrapper clean
 
