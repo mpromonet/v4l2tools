@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 					        ||(videoCapture->getFormat() == V4L2_PIX_FMT_MJPEG) ) {		
 						int width = 0;
 						int height = 0;
-						if (libyuv::MJPGSize((const uint8*)buffer, rsize, &width, &height) == 0) {
+						if (libyuv::MJPGSize((const uint8_t*)buffer, rsize, &width, &height) == 0) {
 							LOG(NOTICE) << "libyuv::MJPGSize " << width << "x" << height; 
 						} else {
 							LOG(WARN) << "libyuv::MJPGSize error"; 

@@ -80,7 +80,7 @@ class VpxEncoder : public Codec {
 
 		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
-                libyuv::ConvertToI420((const uint8*)buffer, rsize,
+                libyuv::ConvertToI420((const uint8_t*)buffer, rsize,
                     m_input.planes[0], m_width,
                     m_input.planes[1], (m_width+1)/2,
                     m_input.planes[2], (m_width+1)/2,

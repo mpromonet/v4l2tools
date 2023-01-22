@@ -29,9 +29,9 @@ class JpegDecoder : public Codec {
 		}
 
 		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
-                uint8 *i420_p0 = m_i420buffer;
-                uint8 *i420_p1 = i420_p0 + m_width * m_height;
-                uint8 *i420_p2 = i420_p1 + m_width * m_height / 2;
+                uint8_t *i420_p0 = m_i420buffer;
+                uint8_t *i420_p1 = i420_p0 + m_width * m_height;
+                uint8_t *i420_p2 = i420_p1 + m_width * m_height / 2;
 
 				jpeg_mem_src(&m_cinfo, (unsigned char*)buffer, rsize);	
 				jpeg_read_header(&m_cinfo, TRUE);
@@ -58,7 +58,7 @@ class JpegDecoder : public Codec {
                 libyuv::ConvertFromI420(i420_p0, m_width,
                                         i420_p1, (m_width + 1) / 2,
                                         i420_p2, (m_width + 1) / 2,
-                                        (uint8 *)outBuffer, 0,
+                                        (uint8_t *)outBuffer, 0,
                                         m_width, m_height,
                                         m_outformat);
 

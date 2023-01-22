@@ -49,7 +49,7 @@ class JpegEncoder : public Codec {
 				unsigned char * buffer_u = buffer_y + m_width*m_height;
 				unsigned char * buffer_v = buffer_u + m_width*m_height/4;
 
-				libyuv::ConvertToI420((const uint8*)buffer, rsize,
+				libyuv::ConvertToI420((const uint8_t*)buffer, rsize,
 						buffer_y, m_width,
 						buffer_u, (m_width+1)/2,
 						buffer_v, (m_width+1)/2,

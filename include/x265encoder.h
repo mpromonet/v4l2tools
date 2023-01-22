@@ -82,10 +82,10 @@ class X265Encoder : public Codec {
 
 		void convertAndWrite(const char* buffer, unsigned int rsize, V4l2Output* videoOutput) {
 
-				libyuv::ConvertToI420((const uint8*)buffer, rsize,
-							(uint8*)m_pic_in->planes[0], m_width,
-							(uint8*)m_pic_in->planes[1], (m_width+1)/2,
-							(uint8*)m_pic_in->planes[2], (m_width+1)/2,
+				libyuv::ConvertToI420((const uint8_t*)buffer, rsize,
+							(uint8_t*)m_pic_in->planes[0], m_width,
+							(uint8_t*)m_pic_in->planes[1], (m_width+1)/2,
+							(uint8_t*)m_pic_in->planes[2], (m_width+1)/2,
 							0, 0,
 							m_width, m_height,
 							m_width, m_height,
