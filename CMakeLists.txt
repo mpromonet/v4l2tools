@@ -12,7 +12,7 @@ include_directories("include")
 add_executable(${PROJECT_NAME} src/v4l2compress.cpp)
 
 # v4l2wrapper
-add_subdirectory(v4l2wrapper)
+add_subdirectory(v4l2wrapper EXCLUDE_FROM_ALL)
 target_include_directories(${PROJECT_NAME} PUBLIC "v4l2wrapper/inc")
 target_link_libraries (${PROJECT_NAME} v4l2wrapper)
 
