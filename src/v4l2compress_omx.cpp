@@ -144,9 +144,9 @@ int main(int argc, char* argv[])
 				encode_config_activate(video_encode);		
 				
                                 // intermediate I420 image
-                                uint8 i420_p0[width*height];
-                                uint8 i420_p1[width*height/2];
-                                uint8 i420_p2[width*height/2];
+                                uint8_t i420_p0[width*height];
+                                uint8_t i420_p1[width*height/2];
+                                uint8_t i420_p2[width*height/2];
 				
 				timeval tv;
 				
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
 								}
 								else
 								{
-									libyuv::ConvertToI420((const uint8*)inbuffer, rsize,
+									libyuv::ConvertToI420((const uint8_t*)inbuffer, rsize,
 										i420_p0, width,
 										i420_p1, width/2,
 										i420_p2, width/2,
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
 									libyuv::ConvertFromI420(i420_p0, width,
 											i420_p1, width/2,
 											i420_p2, width/2,
-											(uint8*)buf->pBuffer, 0,
+											(uint8_t*)buf->pBuffer, 0,
 											width, height,
 											V4L2_PIX_FMT_YUV420);
 									buf->nFilledLen = width*height*3/2;
