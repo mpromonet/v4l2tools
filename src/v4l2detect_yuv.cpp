@@ -139,10 +139,10 @@ int main(int argc, char* argv[])
 			else
 			{
 				// intermediate I420 image
-				uint8 i420[width*height*2];
-				uint8* i420_p0=i420;
-				uint8* i420_p1=&i420[width*height];
-				uint8* i420_p2=&i420[width*height*3/2];								
+				uint8_t i420[width*height*2];
+				uint8_t* i420_p0=i420;
+				uint8_t* i420_p1=&i420[width*height];
+				uint8_t* i420_p2=&i420[width*height*3/2];								
 				
 				timeval tv;
 				
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 						}
 						else
 						{
-							libyuv::ConvertToI420((const uint8*)inbuffer, rsize,
+							libyuv::ConvertToI420((const uint8_t*)inbuffer, rsize,
 								i420_p0, width,
 								i420_p1, width/2,
 								i420_p2, width/2,
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
 							libyuv::ConvertFromI420(i420_p0, width,
 									i420_p1, width/2,
 									i420_p2, width/2,
-									(uint8*)outBuffer, 0,
+									(uint8_t*)outBuffer, 0,
 									width, height, 
 									outformat);
 							

@@ -54,6 +54,7 @@ Tools for Raspberry
  - v4l2compress_omx : 
 
 >	read YUV from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device
+>   make sure the v4l2 source supports the correct pixel format. This can be configured for device 0 using `v4l2-ctl -d 0 -v width=640,height=480,pixelformat=YUYV -V`. Then check it was applied correctly using `v4l2-ctl --all`
 
 Build
 -----
