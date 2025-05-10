@@ -31,7 +31,7 @@ ILCLIENTDIR=/opt/vc/src/hello_pi/libs/ilclient
 ifneq ($(wildcard $(ILCLIENTDIR)),)
 CFLAGS  +=-I /opt/vc/include/ -I /opt/vc/include/interface/vcos/ -I /opt/vc/include/interface/vcos/pthreads/ -I /opt/vc/include/interface/vmcs_host/linux/ -I $(ILCLIENTDIR) 
 CFLAGS  += -D_REENTRANT -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -U_FORTIFY_SOURCE -DHAVE_LIBOPENMAX=2 -DOMX -DOMX_SKIP64BIT -ftree-vectorize -pipe -DUSE_EXTERNAL_OMX -DHAVE_LIBBCM_HOST -DUSE_EXTERNAL_LIBBCM_HOST -DUSE_VCHIQ_ARM -Wno-psabi
-LDFLAGS +=-L /opt/vc/lib -L $(ILCLIENTDIR) -lpthread -lopenmaxil -lbcm_host -lvcos -lvchiq_arm
+LDFLAGS +=-L$(ILCLIENTDIR) -L/opt/vc/lib -lbrcmEGL -lopenmaxil -lpthread -lbcm_host -lvcos -lvchiq_arm -Wl,-rpath,/opt/vc/lib
 
 v4l2compress_omx: src/encode_omx.cpp src/v4l2compress_omx.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a libyuv.a
 	$(CXX) -o $@ $^ $(CFLAGS) $(LDFLAGS) -I libyuv/include
@@ -42,13 +42,17 @@ v4l2grab_h264: src/encode_omx.cpp src/v4l2grab_h264.cpp $(ILCLIENTDIR)/libilclie
 v4l2display_h264: src/v4l2display_h264.cpp $(ILCLIENTDIR)/libilclient.a libv4l2wrapper.a
 	$(CXX) -o $@ $^ $(CFLAGS) $(LDFLAGS) 
 
-
 $(ILCLIENTDIR)/libilclient.a:
 	make -C $(ILCLIENTDIR)
 	
 ALL_PROGS+=v4l2grab_h264
 ALL_PROGS+=v4l2display_h264
 ALL_PROGS+=v4l2compress_omx
+endif
+
+ifneq ($(wildcard /usr/include/libcamera-apps),)
+v4l2libcamera: src/v4l2libcamera.cpp 
+	$(CXX) -o $@ $^ -I /usr/include/libcamera-apps -I /usr/include/libcamera -std=c++20 -l camera_app -l camera -l boost_program_options 
 endif
 
 ifeq ("$(ARCH)","x86_64")
