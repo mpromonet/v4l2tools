@@ -1,5 +1,5 @@
 ALL_PROGS = v4l2copy v4l2source_yuv v4l2dump v4l2compress
-CFLAGS = -std=c++11 -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
+CFLAGS = -std=c++20 -W -Wall -pthread -g -pipe $(CFLAGS_EXTRA) -I include
 RM = rm -rf
 CC = $(CROSS)gcc
 CXX = $(CROSS)g++
@@ -52,7 +52,7 @@ endif
 
 ifneq ($(wildcard /usr/include/libcamera-apps),)
 v4l2libcamera: src/v4l2libcamera.cpp 
-	$(CXX) -o $@ $^ -I /usr/include/libcamera-apps -I /usr/include/libcamera -std=c++20 -l camera_app -l camera -l boost_program_options 
+	$(CXX) -o $@ $^ $(CFLAGS) $(LDFLAGS) -I /usr/include/libcamera-apps -I /usr/include/libcamera -l camera_app -l camera -l boost_program_options libv4l2wrapper.a
 endif
 
 ifeq ("$(ARCH)","x86_64")

@@ -1,18 +1,17 @@
-/* SPDX-License-Identifier: BSD-2-Clause */
-/*
- * Copyright (C) 2020, Raspberry Pi (Trading) Ltd.
- *
- * rpicam_vid.cpp - libcamera video record app.
- */
-
- #include <chrono>
- #include <poll.h>
- #include <signal.h>
- #include <sys/signalfd.h>
- #include <sys/stat.h>
+#include <chrono>
+#include <algorithm>
+#include <poll.h>
+#include <signal.h>
+#include <sys/signalfd.h>
+#include <sys/stat.h>
  
- #include "core/rpicam_encoder.hpp"
- #include "output/output.hpp"
+#include "core/rpicam_encoder.hpp"
+#include "output/output.hpp"
+
+
+#include "V4l2Device.h"
+#include "V4l2Capture.h"
+#include "V4l2Output.h"
  
  using namespace std::placeholders;
  
@@ -43,40 +42,49 @@
      }
      if (options->signal)
      {
-         if (signal_received == SIGUSR1)
-             key = '\n';
-         else if ((signal_received == SIGUSR2) || (signal_received == SIGPIPE))
-             key = 'x';
          signal_received = 0;
      }
      return key;
  }
  
- static int get_colourspace_flags(std::string const &codec)
- {
-     if (codec == "mjpeg" || codec == "yuv420")
-         return RPiCamEncoder::FLAG_VIDEO_JPEG_COLOURSPACE;
-     else
-         return RPiCamEncoder::FLAG_VIDEO_NONE;
- }
  
+class MyOutput : public Output {
+public:
+   MyOutput(VideoOptions const *options): Output(options) {
+     std::string codec(options->codec);
+     std::transform(codec.begin(), codec.end(), codec.begin(), ::toupper);
+     V4L2DeviceParameters outparam(options->output.c_str(), V4l2Device::fourcc(codec.c_str()), options->width, options->height, 0, IOTYPE_MMAP, 255);
+     m_videoOutput = V4l2Output::create(outparam);
+   }
+
+   void outputBuffer(void *mem, size_t size, int64_t timestamp_us, uint32_t flags) override {
+         LOG(2, "outputBuffer: " << size);
+         if (m_videoOutput) {
+		m_videoOutput->write((char*)mem, size);
+         }
+   }
+private:
+  V4l2Output* m_videoOutput;
+};
+
  // The main even loop for the application.
  
  static void event_loop(RPiCamEncoder &app)
  {
      VideoOptions const *options = app.GetOptions();
-     std::unique_ptr<Output> output = std::unique_ptr<Output>(Output::Create(options));
+     std::unique_ptr<Output> output = std::unique_ptr<Output>(new MyOutput(options));
      app.SetEncodeOutputReadyCallback(std::bind(&Output::OutputReady, output.get(), _1, _2, _3, _4));
      app.SetMetadataReadyCallback(std::bind(&Output::MetadataReady, output.get(), _1));
  
      app.OpenCamera();
-     app.ConfigureVideo(get_colourspace_flags(options->codec));
+     app.ConfigureVideo(RPiCamEncoder::FLAG_VIDEO_NONE);
      app.StartEncoder();
      app.StartCamera();
  
      // Monitoring for keypresses and signals.
      signal(SIGINT, default_signal_handler);
      pollfd p[1] = { { STDIN_FILENO, POLLIN, 0 } };
+
  
      for (unsigned int count = 0; ; count++)
      {
