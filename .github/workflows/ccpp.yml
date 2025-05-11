@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
       
     - name: apt
       run: sudo apt-get install -y --no-install-recommends autoconf automake libtool pkg-config git cmake make g++ liblog4cpp5-dev libvpx-dev libx264-dev libjpeg-dev
@@ -19,7 +19,7 @@ jobs:
     - name: install
       run: make install DESTDIR=$PWD/artifact
       
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v4
       with:
         name: pkg
         path: artifact  
