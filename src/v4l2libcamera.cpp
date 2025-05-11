@@ -1,3 +1,9 @@
+/* ---------------------------------------------------------------------------
+** This software is in the public domain, furnished "as is", without technical
+** support, and with no warranty, express or implied, as to its usefulness for
+** any purpose.
+** -------------------------------------------------------------------------*/
+
 #include <chrono>
 #include <algorithm>
 #include <poll.h>
@@ -46,26 +52,30 @@
      }
      return key;
  }
- 
- 
-class MyOutput : public Output {
-public:
-   MyOutput(VideoOptions const *options): Output(options) {
-     std::string codec(options->codec);
-     std::transform(codec.begin(), codec.end(), codec.begin(), ::toupper);
-     V4L2DeviceParameters outparam(options->output.c_str(), V4l2Device::fourcc(codec.c_str()), options->width, options->height, 0, IOTYPE_MMAP, 255);
-     m_videoOutput = V4l2Output::create(outparam);
-   }
 
-   void outputBuffer(void *mem, size_t size, int64_t timestamp_us, uint32_t flags) override {
+ class MyOutput : public Output
+ {
+ public:
+     MyOutput(VideoOptions const *options) : Output(options)
+     {
+         std::string codec(options->codec);
+         std::transform(codec.begin(), codec.end(), codec.begin(), ::toupper);
+         V4L2DeviceParameters outparam(options->output.c_str(), V4l2Device::fourcc(codec.c_str()), options->width, options->height, 0, IOTYPE_MMAP, 255);
+         m_videoOutput = V4l2Output::create(outparam);
+     }
+
+     void outputBuffer(void *mem, size_t size, int64_t timestamp_us, uint32_t flags) override
+     {
          LOG(2, "outputBuffer: " << size);
-         if (m_videoOutput) {
-		m_videoOutput->write((char*)mem, size);
+         if (m_videoOutput)
+         {
+             m_videoOutput->write((char *)mem, size);
          }
-   }
-private:
-  V4l2Output* m_videoOutput;
-};
+     }
+
+ private:
+     V4l2Output *m_videoOutput;
+ };
 
  // The main even loop for the application.
  
@@ -97,12 +107,18 @@ private:
              continue;
          }
          if (msg.type == RPiCamEncoder::MsgType::Quit)
-             return;
-         else if (msg.type != RPiCamEncoder::MsgType::RequestComplete)
-             throw std::runtime_error("unrecognised message!");
+         {
+            return;
+         }
+         else if (msg.type != RPiCamEncoder::MsgType::RequestComplete) 
+         {
+            throw std::runtime_error("unrecognised message!");
+         }
          int key = get_key_or_signal(options, p);
          if (key == '\n')
-             output->Signal();
+         {
+            output->Signal();
+         }
  
          LOG(2, "Viewfinder frame " << count);
          auto now = std::chrono::high_resolution_clock::now();
@@ -125,10 +141,13 @@ private:
          VideoOptions *options = app.GetOptions();
          if (options->Parse(argc, argv))
          {
-             if (options->verbose >= 2)
-                 options->Print();
+            if (options->verbose >= 2)
+            {
+                options->Print();
+            }
+            options->nopreview = true;
  
-             event_loop(app);
+            event_loop(app);
          }
      }
      catch (std::exception const &e)

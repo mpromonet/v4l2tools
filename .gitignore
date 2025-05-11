@@ -3,6 +3,7 @@ v4l2copy
 v4l2source_yuv
 v4l2tools
 v4l2uncompress_jpeg
+v4l2libcamera
 *.a
 CMakeCache.txt
 CMakeFiles/
