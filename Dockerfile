@@ -1,4 +1,4 @@
-ARG IMAGE=ubuntu:20.04
+ARG IMAGE=ubuntu:24.04
 FROM $IMAGE as builder
 LABEL maintainer michel.promonet@free.fr
 WORKDIR /build
