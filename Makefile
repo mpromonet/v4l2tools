@@ -53,6 +53,8 @@ endif
 ifneq ($(wildcard /usr/include/libcamera-apps),)
 v4l2libcamera: src/v4l2libcamera.cpp 
 	$(CXX) -o $@ $^ $(CFLAGS) $(LDFLAGS) -I /usr/include/libcamera-apps -I /usr/include/libcamera -l camera_app -l camera -l boost_program_options libv4l2wrapper.a
+
+ALL_PROGS+=v4l2libcamera
 endif
 
 ifeq ("$(ARCH)","x86_64")
