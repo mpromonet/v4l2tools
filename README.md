@@ -56,6 +56,11 @@ Tools for Raspberry
 >	read YUV from a V4L2 capture device, compress in H264 format using OMX and write to a V4L2 output device
 >   make sure the v4l2 source supports the correct pixel format. This can be configured for device 0 using `v4l2-ctl -d 0 -v width=640,height=480,pixelformat=YUYV -V`. Then check it was applied correctly using `v4l2-ctl --all`
 
+- v4l2libcamera : 
+
+>	read camera using [libcamera](https://github.com/raspberrypi/libcamera) and write to a V4L2 output device, byt default codec is H264 (see https://www.raspberrypi.com/documentation/computers/camera_software.html#codec)
+> options are standard options of [libcamera-apps](https://www.raspberrypi.com/documentation/computers/camera_software.html#rpicam-apps-options-reference), -o was used to set V4L2 device to write to (for instance /dev/video30).
+
 Build
 -----
 
