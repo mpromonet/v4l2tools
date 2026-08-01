@@ -237,7 +237,7 @@ int main (int argc, char **argv)
 		int port_settings_changed = 0;
 		int first_packet = 1;
 		
-		V4L2DeviceParameters param(in_devname,0,0,0,0,ioTypeIn,verbose);
+		V4L2DeviceParameters param(in_devname,0,0,0,0,ioTypeIn);
 		V4l2Capture* videoCapture = V4l2Capture::create(param);
 
 		if (videoCapture) {

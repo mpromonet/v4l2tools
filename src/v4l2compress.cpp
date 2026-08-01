@@ -50,7 +50,7 @@ int convert(V4l2Capture* videoCapture, const std::string& out_devname, V4l2IoTyp
 	// init V4L2 output interface
 	int width = videoCapture->getWidth();
 	int height = videoCapture->getHeight();		
-	V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, ioTypeOut, verbose);
+	V4L2DeviceParameters outparam(out_devname.c_str(), outformat, width, height, 0, ioTypeOut);
 	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname,0,0,0,0,ioTypeIn,verbose);
+	V4L2DeviceParameters param(in_devname,0,0,0,0,ioTypeIn);
 	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	int ret = 0;

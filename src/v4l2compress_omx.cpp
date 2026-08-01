@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 capture interface
-	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0, ioTypeIn, verbose, openflags);
+	V4L2DeviceParameters param(in_devname, 0, 0, 0, 0, ioTypeIn, openflags);
 	V4l2Capture* videoCapture = V4l2Capture::create(param);
 	
 	if (videoCapture == NULL)
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 		int height = videoCapture->getHeight();	
 		
 		// init V4L2 output interface
-		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, width, height, 0, ioTypeOut, verbose, openflags);
+		V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264, width, height, 0, ioTypeOut, openflags);
 		V4l2Output* videoOutput = V4l2Output::create(outparam);
 		if (videoOutput == NULL)
 		{	

@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 	// initialize log4cpp
 	initLogger(verbose);
 	
-	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264,  width, height, 0, ioTypeOut, verbose);
+	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_H264,  width, height, 0, ioTypeOut);
 	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
