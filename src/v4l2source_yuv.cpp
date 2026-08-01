@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 	initLogger(verbose);
 
 	// init V4L2 output interface
-	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, width, height, fps, ioTypeOut, verbose);
+	V4L2DeviceParameters outparam(out_devname, V4L2_PIX_FMT_YUYV, width, height, fps, ioTypeOut);
 	V4l2Output* videoOutput = V4l2Output::create(outparam);
 	if (videoOutput == NULL)
 	{	
